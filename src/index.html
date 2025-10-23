@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html;charset=UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="shortcut icon" href="favicon.png" />
+        <title>Story App</title>
+
+        <link rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" 
+            integrity="sha512-h9FcoyWjHcOcmEVkxOfTLnmZFWIH0iZhZT1H2TbOq55xssQGEJHEaIm+PgoUaZbRvQTNTluNOEfb1ZRy6D3BOw==" 
+            crossorigin="anonymous"/>
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" 
+            integrity="sha512-puJW3E/qXDqYp9IfhAI54BJEaWIfloJ7JWs7OeD5i6ruC9JZL1gERT1wjtwXFlh7CjE7ZJ+/vcRZRkIYIb6p4g==" 
+            crossorigin="anonymous"></script>
+
+        <script type="module" src="scripts/index.js"></script>
+    </head>
+    <body>
+        <header>
+            <div class="main-header container">
+                <a class="brand-name" href="#/">Story App</a>
+
+                <nav id="navigation-drawer" class="navigation-drawer">
+                    <ul id="nav-list" class="nav-list">
+                        <li><a href="#/">Beranda</a></li>
+                        <li><a href="#/add-story">Tambah Cerita</a></li>
+                        <li><a href="#/about">About</a></li>
+                        <li><a href="#/login">Login</a></li>
+                        <li><a href="#/register">Register</a></li>
+                    </ul>
+                </nav>
+
+                <button id="drawer-button" class="drawer-button">☰</button>
+            </div>
+        </header>
+
+        <main id="main-content" class="main-content"></main>
+    </body>
+</html>
