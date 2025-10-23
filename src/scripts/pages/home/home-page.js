@@ -1,7 +1,6 @@
-import Swal from "sweetalert2";
 import API from "../../data/api";
 import { showFormattedDate } from "../../utils/helper";
-import { closeLoading, showError, showLoading, showLoadingWithProgress } from "../../utils/swal-helper";
+import { closeLoading, showError, showLoading } from "../../utils/swal-helper";
 
 export default class HomePage {
     #currentPage = 1;
@@ -47,30 +46,26 @@ export default class HomePage {
                         <option value="30">30 cerita</option>
                     </select>
                 </div>
-                <div class="page-info" id="pageInfo">
-                    <span class="loading-text">Memuat...</span>
-                </div>
+                <div class="page-info" id="pageInfo"></div>
                 </div>
 
-                <div id="storiesContainer" class="stories-container">
-                    <div class="loading">Memuat cerita...</div>
-                </div>
+                <div id="storiesContainer" class="stories-container"></div>
 
                 <div id="paginationContainer" class="pagination-container hidden">
                     <button id="btnFirst" class="pagination-btn" title="Halaman Pertama">
-                        ⮜ Pertama
+                        << Pertama
                     </button>
                     <button id="btnPrev" class="pagination-btn" title="Halaman Sebelumnya">
-                        ← Sebelumnya
+                        < Sebelumnya
                     </button>
                     
                     <div id="pageNumbers" class="page-numbers"></div>
                     
                     <button id="btnNext" class="pagination-btn" title="Halaman Berikutnya">
-                        Berikutnya →
+                        Berikutnya >
                     </button>
                     <button id="btnLast" class="pagination-btn" title="Halaman Terakhir">
-                        Terakhir ⮞
+                        Terakhir >>
                     </button>
                 </div>
             </section>
@@ -149,7 +144,7 @@ export default class HomePage {
                             <img src="${story.photoUrl}" alt="${story.name}" class="story-image" loading="lazy" />
                         </div>
                         <div class="story-content">
-                            <h3 class="story-name">${story.name}</h3>
+                            <h2 class="story-name">${story.name}</h2>
                             <p class="story-description">${this.#truncateText(story.description, 100)}</p>
                             <p class="story-date">${showFormattedDate(story.createdAt, 'id-ID')}</p>
                         </div>

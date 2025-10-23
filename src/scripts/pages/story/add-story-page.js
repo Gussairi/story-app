@@ -1,5 +1,5 @@
 import API from "../../data/api";
-import { showLoading, closeLoading, showSuccess, showError, showConfirm, showInfo } from "../../utils/swal-helper";
+import { showLoading, closeLoading, showSuccess, showError, showConfirm } from "../../utils/swal-helper";
 
 export default class AddStoryPage {
     #previewImage = null;

@@ -1,4 +1,3 @@
-// SweetAlert2 Helper Functions
 import Swal from 'sweetalert2';
 import 'sweetalert2/dist/sweetalert2.min.css';
 
@@ -40,26 +39,6 @@ export const showError = (title, text = '') => {
     });
 };
 
-export const showInfo = (title, text = '') => {
-    return Swal.fire({
-        icon: 'info',
-        title,
-        text,
-        confirmButtonText: 'OK',
-        confirmButtonColor: '#4CAF50'
-    });
-};
-
-export const showWarning = (title, text = '') => {
-    return Swal.fire({
-        icon: 'warning',
-        title,
-        text,
-        confirmButtonText: 'OK',
-        confirmButtonColor: '#4CAF50'
-    });
-};
-
 export const showConfirm = async (title, text = '', confirmButtonText = 'Ya', cancelButtonText = 'Batal') => {
     const result = await Swal.fire({
         icon: 'question',
@@ -74,49 +53,4 @@ export const showConfirm = async (title, text = '', confirmButtonText = 'Ya', ca
     });
     
     return result.isConfirmed;
-};
-
-export const showToast = (title, icon = 'success', timer = 3000) => {
-    const Toast = Swal.mixin({
-        toast: true,
-        position: 'top-end',
-        showConfirmButton: false,
-        timer,
-        timerProgressBar: true,
-        didOpen: (toast) => {
-            toast.addEventListener('mouseenter', Swal.stopTimer);
-            toast.addEventListener('mouseleave', Swal.resumeTimer);
-        }
-    });
-
-    return Toast.fire({
-        icon,
-        title
-    });
-};
-
-export const showLoadingWithProgress = (title = 'Memproses...') => {
-    let timerInterval;
-    
-    Swal.fire({
-        title,
-        html: 'Progres: <b></b>%',
-        timer: 100000,
-        timerProgressBar: true,
-        allowOutsideClick: false,
-        allowEscapeKey: false,
-        showConfirmButton: false,
-        didOpen: () => {
-            Swal.showLoading();
-            const b = Swal.getHtmlContainer().querySelector('b');
-            timerInterval = setInterval(() => {
-                const currentProgress = Swal.getTimerLeft();
-                const progress = Math.round((1 - currentProgress / 100000) * 100);
-                b.textContent = progress;
-            }, 100);
-        },
-        willClose: () => {
-            clearInterval(timerInterval);
-        }
-    });
 };

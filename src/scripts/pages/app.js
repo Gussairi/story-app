@@ -1,11 +1,14 @@
 import routes from '../routes/routes';
-import { getActiveRoute } from '../routes/url-parser';
+import { getActiveRoute, parseActivePathname } from '../routes/url-parser';
 import { showConfirm, showSuccess } from '../utils/swal-helper';
+import { transitionHelper, transitionWithName, transitionWithDirection } from '../utils/transition-helper';
 
 class App {
   #content = null;
   #drawerButton = null;
   #navigationDrawer = null;
+  #previousRoute = '/';
+  #navigationHistory = [];
 
   constructor({ navigationDrawer, drawerButton, content }) {
     this.#content = content;
@@ -88,24 +91,88 @@ class App {
         1500,
       );
       
-      window.location.reload();
+      await transitionHelper(async () => {
+        window.location.reload();
+      });
     }
   }
 
+  #getTransitionType(currentRoute, previousRoute) {
+    if (currentRoute.includes('/story/')) {
+      return 'detail';
+    }
+    
+    if ((currentRoute === '/login' || currentRoute === '/register') && previousRoute !== '/login' && previousRoute !== '/register') {
+      return 'auth';
+    }
+    
+    if (currentRoute === '/add-story') {
+      return 'form';
+    }
+    
+    return 'slide';
+  }
+
+  #getTransitionDirection(currentRoute, previousRoute) {
+    const routeDepth = {
+      '/': 0,
+      '/login': 1,
+      '/register': 1,
+      '/add-story': 1,
+      '/story/:id': 2
+    };
+
+    const currentDepth = routeDepth[currentRoute] ?? 1;
+    const previousDepth = routeDepth[previousRoute] ?? 0;
+
+    if (currentRoute === '/') {
+      return 'backward';
+    }
+
+    if (previousRoute.includes('/story/') && currentRoute === '/') {
+      return 'backward';
+    }
+
+    return currentDepth > previousDepth ? 'forward' : 'backward';
+  }
+
   async renderPage() {
-    const url = getActiveRoute();
-    const page = routes[url];
+    const currentRoute = getActiveRoute();
+    const page = routes[currentRoute];
 
     if (!page) {
-      console.error('Page not found for route:', url);
-      window.location.hash = '#/';
+      console.error('Page not found for route:', currentRoute);
+
+      await transitionHelper(async () => {
+        window.location.hash = '#/';
+      });
       return;
     }
 
+    this.#navigationHistory.push(currentRoute);
+    if (this.#navigationHistory.length > 10) {
+      this.#navigationHistory.shift();
+    }
+
+    const transitionType = this.#getTransitionType(currentRoute, this.#previousRoute);
+
     this.#updateNavigation();
 
-    this.#content.innerHTML = await page.render();
-    await page.afterRender();
+    if (transitionType === 'slide') {
+      const direction = this.#getTransitionDirection(currentRoute, this.#previousRoute);
+      
+      await transitionWithDirection(async () => {
+        this.#content.innerHTML = await page.render();
+        await page.afterRender();
+      }, direction);
+    } else {
+      await transitionWithName(async () => {
+        this.#content.innerHTML = await page.render();
+        await page.afterRender();
+      }, transitionType);
+    }
+
+    this.#previousRoute = currentRoute;
   }
 }
 

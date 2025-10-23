@@ -1,4 +1,5 @@
 import '../styles/styles.css';
+import '../styles/transitions.css';
 
 import App from './pages/app.js';
 
