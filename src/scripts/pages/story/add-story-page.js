@@ -462,10 +462,7 @@ export default class AddStoryPage {
                     'Cerita Anda telah ditambahkan.',
                     2000
                 );
-
-                setTimeout(() => {
-                    window.location.hash = '#/';
-                }, 2000);
+                window.location.hash = '#/';
             } else {
                 throw new Error(response.message || 'Gagal memposting cerita');
             }
