@@ -1,5 +1,6 @@
 import API from "../../data/api";
-import { showFormStatus, setButtonLoading, isValidEmail, isValidPassword } from "../../utils/helper";
+import { isValidEmail, isValidPassword } from "../../utils/helper";
+import { showLoading, closeLoading, showSuccess, showError } from "../../utils/swal-helper";
 
 export default class RegisterPage {
     async render() {
@@ -50,7 +51,6 @@ export default class RegisterPage {
                             minlength="8"
                         />
                     </div>
-                    <div role="status" aria-live="polite" id="formStatus" class="sr-only"></div>
                     <button type="submit" id="btnRegister">Daftar</button>
                     <p class="text-center">
                         Sudah punya akun? <a href="#/login">Login di sini</a>
@@ -65,9 +65,6 @@ export default class RegisterPage {
         const nameInput = document.getElementById('name');
         const emailInput = document.getElementById('email');
         const passwordInput = document.getElementById('password');
-        const confirmPasswordInput = document.getElementById('confirmPassword');
-        const formStatus = document.getElementById('formStatus');
-        const btn = document.getElementById('btnRegister');
 
         nameInput.focus();
 
@@ -75,49 +72,48 @@ export default class RegisterPage {
             e.preventDefault();
 
             if (!nameInput.value.trim()) {
-                showFormStatus(formStatus, 'Nama lengkap harus diisi.', 'error');
+                showError('Validasi Gagal', 'Nama lengkap harus diisi.');
                 nameInput.focus();
                 return;
             }
 
             if (!emailInput.value.trim()) {
-                showFormStatus(formStatus, 'Email harus diisi.', 'error');
+                showError('Validasi Gagal', 'Email harus diisi.');
                 emailInput.focus();
                 return;
             }
 
             if (!passwordInput.value.trim()) {
-                showFormStatus(formStatus, 'Password harus diisi.', 'error');
+                showError('Validasi Gagal', 'Password harus diisi.');
                 passwordInput.focus();
                 return;
             }
 
             if (!confirmPasswordInput.value.trim()) {
-                showFormStatus(formStatus, 'Konfirmasi password harus diisi.', 'error');
+                showError('Validasi Gagal', 'Konfirmasi password harus diisi.');
                 confirmPasswordInput.focus();
                 return;
             }
 
             if (!isValidEmail(emailInput.value.trim())) {
-                showFormStatus(formStatus, 'Format email tidak valid.', 'error');
+                showError('Email Tidak Valid', 'Format email tidak valid.');
                 emailInput.focus();
                 return;
             }
 
             if (!isValidPassword(passwordInput.value)) {
-                showFormStatus(formStatus, 'Password harus minimal 8 karakter.', 'error');
+                showError('Password Tidak Valid', 'Password harus minimal 8 karakter.');
                 passwordInput.focus();
                 return;
             }
 
             if (passwordInput.value !== confirmPasswordInput.value) {
-                showFormStatus(formStatus, 'Password dan konfirmasi password tidak sama.', 'error');
+                showError('Password Tidak Sama', 'Password dan konfirmasi password tidak sama.');
                 confirmPasswordInput.focus();
                 return;
             }
 
-            setButtonLoading(btn, true, 'Mendaftar...');
-            showFormStatus(formStatus, 'Sedang mendaftar...', 'info');
+            showLoading('Sedang Mendaftar...', 'Mohon tunggu sebentar');
 
             try {
                 const response = await API.register({
@@ -127,11 +123,13 @@ export default class RegisterPage {
                 });
 
                 if (response.error === false) {
-                    showFormStatus(
-                        formStatus, 
-                        'Registrasi berhasil! Mengalihkan ke halaman login...', 
-                        'success'
-                    );
+                    closeLoading();
+
+                    await showSuccess(
+                        'Register Berhasil',
+                        'Akun Anda telah dibuat. Silahkan login.',
+                        2000
+                    )
 
                     form.reset();
 
@@ -143,6 +141,7 @@ export default class RegisterPage {
                 }
             } catch (error) {
                 console.error('Register error:', error);
+                closeLoading();
                 
                 let errorMessage = 'Terjadi kesalahan saat mendaftar. Silakan coba lagi.';
                 
@@ -167,8 +166,7 @@ export default class RegisterPage {
                     errorMessage = error.message;
                 }
                 
-                showFormStatus(formStatus, errorMessage, 'error');
-                setButtonLoading(btn, false);
+                await showError('Registrasi Gagal', errorMessage);
             }
         });
 
@@ -177,18 +175,6 @@ export default class RegisterPage {
                 confirmPasswordInput.setCustomValidity('Password tidak sama');
             } else {
                 confirmPasswordInput.setCustomValidity('');
-            }
-        });
-
-        emailInput.addEventListener('blur', () => {
-            if (emailInput.value && !isValidEmail(emailInput.value.trim())) {
-                showFormStatus(formStatus, 'Format email tidak valid.', 'error');
-            }
-        });
-
-        passwordInput.addEventListener('blur', () => {
-            if (passwordInput.value && !isValidPassword(passwordInput.value)) {
-                showFormStatus(formStatus, 'Password harus minimal 8 karakter.', 'error');
             }
         });
     }

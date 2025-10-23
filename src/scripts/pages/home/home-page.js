@@ -1,5 +1,7 @@
+import Swal from "sweetalert2";
 import API from "../../data/api";
 import { showFormattedDate } from "../../utils/helper";
+import { closeLoading, showError, showLoading, showLoadingWithProgress } from "../../utils/swal-helper";
 
 export default class HomePage {
     #currentPage = 1;
@@ -56,7 +58,7 @@ export default class HomePage {
 
                 <div id="paginationContainer" class="pagination-container hidden">
                     <button id="btnFirst" class="pagination-btn" title="Halaman Pertama">
-                        ⏮ Pertama
+                        ⮜ Pertama
                     </button>
                     <button id="btnPrev" class="pagination-btn" title="Halaman Sebelumnya">
                         ← Sebelumnya
@@ -68,7 +70,7 @@ export default class HomePage {
                         Berikutnya →
                     </button>
                     <button id="btnLast" class="pagination-btn" title="Halaman Terakhir">
-                        Terakhir ⏭
+                        Terakhir ⮞
                     </button>
                 </div>
             </section>
@@ -103,7 +105,7 @@ export default class HomePage {
 
         if (!storiesContainer) return;
 
-        storiesContainer.innerHTML = '<div class="loading">Memuat cerita...</div>';
+        showLoading();
 
         try {
             const response = await API.getStories(token, { 
@@ -126,6 +128,7 @@ export default class HomePage {
 
                 if (response.listStory.length === 0) {
                     if (this.#currentPage === 1) {
+                        closeLoading();
                         storiesContainer.innerHTML = '<p class="no-stories">Belum ada cerita yang tersedia.</p>';
                         this.#updatePageInfo(0, 0, 0);
                     } else {
@@ -134,6 +137,8 @@ export default class HomePage {
                     }
                     return;
                 }
+
+                closeLoading();
 
                 const startIndex = (this.#currentPage - 1) * this.#pageSize + 1;
                 const endIndex = startIndex + response.listStory.length - 1;
@@ -285,12 +290,12 @@ export default class HomePage {
         if (btnLast) {
             btnLast.addEventListener('click', async () => {
                 await this.#findAndGoToLastPage();
-            })
+            });
         }
     }
 
     #goToPage(page) {
-        if (page < 1 || page > this.#totalPages || page === this.#currentPage) {
+        if (page < 1 || page === this.#currentPage) {
             return;
         }
 
@@ -302,13 +307,7 @@ export default class HomePage {
         const token = localStorage.getItem('token');
         if (!token) return;
 
-        const btnLast = document.getElementById('btnLast');
-        const originalText = btnLast ? btnLast.textContent : '';
-        
-        if (btnLast) {
-            btnLast.disabled = true;
-            btnLast.textContent = 'Mencari...';
-        }
+        showLoading('Mencari Halaman Terakhir...', 'Mohon tunggu, sedang mencari halaman terakhir');
 
         try {
             let testPage = Math.max(this.#maxPageReached, this.#currentPage);
@@ -330,6 +329,7 @@ export default class HomePage {
                         if (response.listStory.length < this.#pageSize) {
                             this.#totalPages = testPage;
                             this.#maxPageReached = testPage;
+                            closeLoading();
                             this.#goToPage(testPage);
                             return;
                         }
@@ -367,16 +367,14 @@ export default class HomePage {
 
             this.#totalPages = lastValidPage;
             this.#maxPageReached = lastValidPage;
+            closeLoading();
             this.#goToPage(lastValidPage);
 
         } catch (error) {
             console.error('Error finding last page:', error);
-            alert('Gagal menemukan halaman terakhir. Silakan coba lagi.');
-        } finally {
-            if (btnLast) {
-                btnLast.disabled = false;
-                btnLast.textContent = originalText;
-            }
+            closeLoading();
+
+            await showError('Gagal Mencari Halaman Terakhir', 'Terjadi kesalahan. Silahkan coba lagi.');
         }
     }
 

@@ -1,5 +1,6 @@
 import API  from "../../data/api"
-import { showFormStatus, setButtonLoading } from "../../utils/helper"
+import { isValidEmail } from "../../utils/helper"
+import { showLoading, closeLoading, showSuccess, showError } from "../../utils/swal-helper";
 
 export default class LoginPage {
     async render() {
@@ -42,8 +43,6 @@ export default class LoginPage {
         const form = document.getElementById('loginForm');
         const emailInput = document.getElementById('email');
         const passwordInput = document.getElementById('password');
-        const formStatus = document.getElementById('formStatus');
-        const btn = document.getElementById('btnLogin');
 
         emailInput.focus();
 
@@ -51,12 +50,16 @@ export default class LoginPage {
             e.preventDefault();
 
             if (!emailInput.value.trim() || !passwordInput.value.trim()) {
-                showFormStatus(formStatus, 'Email dan password harus diisi.', 'error')
+                showError('Validasi Gagal', 'Email dan password harus diisi.')
                 return;
             }
 
-            setButtonLoading(btn, true);
-            showFormStatus(formStatus, 'Sedang login...', 'info');
+            if (!isValidEmail(emailInput.value.trim())) {
+                showError('Email Tidak Valid', 'Format email tidak valid.');
+                return;
+            }
+
+            showLoading('Sedang Login...', 'Mohon tunggu sebentar');
 
             try {
                 const response = await API.login({
@@ -69,14 +72,18 @@ export default class LoginPage {
                     localStorage.setItem('userId', response.loginResult.userId);
                     localStorage.setItem('userName', response.loginResult.name);
 
-                    showFormStatus(formStatus, 'Login berhasil! Mengalihkan...', 'success');
+                    closeLoading();
 
-                    setTimeout(() => {
-                        window.location.hash = '/';
-                    }, 1000);
+                    await showSuccess(
+                        'Login Berhasil!',
+                        `Selamat datang, ${response.loginResult.name}!`,
+                        1500
+                    );
+                    window.location.hash = '/';
                 }
             } catch (error) {
                 console.error('Login error:', error);
+                closeLoading();
 
                 let errorMessage = 'Terjadi kesalahan saat login. Silakan coba lagi.';
                 
@@ -98,16 +105,9 @@ export default class LoginPage {
                     errorMessage = error.message;
                 }
 
-                showFormStatus(formStatus, errorMessage, 'error');
-                setButtonLoading(btn, false);
+                await showError('Login Gagal', errorMessage);
                 emailInput.focus();
                 emailInput.select();
-            }
-        });
-
-        emailInput.addEventListener('blur', () => {
-            if (emailInput.value && !isValidEmail(emailInput.value.trim())) { //isValidEmail not defined
-                showFormStatus(formStatus, 'Format email tidak valid.', 'error');
             }
         });
     }

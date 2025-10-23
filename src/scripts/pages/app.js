@@ -1,5 +1,6 @@
 import routes from '../routes/routes';
 import { getActiveRoute } from '../routes/url-parser';
+import { showConfirm, showSuccess } from '../utils/swal-helper';
 
 class App {
   #content = null;
@@ -43,15 +44,12 @@ class App {
     if (!navList) return;
 
     if (token) {
-      // User logged in - show logout button
       navList.innerHTML = `
         <li><a href="#/">Beranda</a></li>
         <li><a href="#/add-story">Tambah Cerita</a></li>
-        <li><a href="#/about">About</a></li>
         <li><a href="javascript:void(0)" id="nav-logout">Logout</a></li>
       `;
 
-      // Add logout handler
       const logoutLink = document.getElementById('nav-logout');
       if (logoutLink) {
         logoutLink.addEventListener('click', (e) => {
@@ -60,28 +58,37 @@ class App {
         });
       }
     } else {
-      // User not logged in - show login and register
       navList.innerHTML = `
         <li><a href="#/">Beranda</a></li>
         <li><a href="#/add-story">Tambah Cerita</a></li>
-        <li><a href="#/about">About</a></li>
         <li><a href="#/login">Login</a></li>
         <li><a href="#/register">Register</a></li>
       `;
     }
   }
 
-  #handleLogout() {
-    if (confirm('Apakah Anda yakin ingin logout?')) {
+  async #handleLogout() {
+    const isConfirmed = await showConfirm(
+      'Konfirmasi Logout',
+      'Apakah Anda yakin ingin logout?',
+      'Ya, Logout',
+      'Batal'
+    )
+
+    if (isConfirmed) {
       localStorage.removeItem('token');
       localStorage.removeItem('userId');
       localStorage.removeItem('userName');
       
-      // Close drawer if open
       this.#navigationDrawer.classList.remove('open');
+
+      showSuccess(
+        'Logout Berhasil',
+        'Anda telah keluar dari aplikasi',
+        1500,
+      );
       
-      // Redirect to home
-      window.location.hash = '#/';
+      window.location.reload();
     }
   }
 
@@ -89,14 +96,12 @@ class App {
     const url = getActiveRoute();
     const page = routes[url];
 
-    // Check if page exists
     if (!page) {
       console.error('Page not found for route:', url);
       window.location.hash = '#/';
       return;
     }
 
-    // Update navigation before rendering page
     this.#updateNavigation();
 
     this.#content.innerHTML = await page.render();

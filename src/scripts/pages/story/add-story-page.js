@@ -1,5 +1,5 @@
 import API from "../../data/api";
-import { showFormStatus, setButtonLoading } from "../../utils/helper";
+import { showLoading, closeLoading, showSuccess, showError, showConfirm, showInfo } from "../../utils/swal-helper";
 
 export default class AddStoryPage {
     #previewImage = null;
@@ -20,7 +20,7 @@ export default class AddStoryPage {
             <section class="container">
                 <div class="add-story-header">
                     <h1>Tambah Cerita Baru</h1>
-                    ${!isLoggedIn ? '<p class="guest-notice">Anda sedang membuat cerita sebagai guest</p>' : `<p class="user-notice">Halo, ${userName}!</p>`}
+                    ${!isLoggedIn ? '<p class="guest-notice">Anda sedang membuat cerita sebagai guest</p>' : `<p class="user-notice">Halo, ${userName}! Ada cerita apa hari ini?</p>`}
                 </div>
                 
                 <form id="addStoryForm" class="add-story-form">
@@ -101,8 +101,6 @@ export default class AddStoryPage {
                         </button>
                     </div>
 
-                    <div role="status" aria-live="polite" id="formStatus" class="sr-only"></div>
-
                     <div class="form-actions">
                         <button type="button" id="btnCancel" class="btn-cancel">Batal</button>
                         <button type="submit" id="btnSubmit" class="btn-submit">Posting Cerita</button>
@@ -122,8 +120,6 @@ export default class AddStoryPage {
         const previewImg = document.getElementById('previewImg');
         const btnRemoveImage = document.getElementById('btnRemoveImage');
         const btnCancel = document.getElementById('btnCancel');
-        const btnSubmit = document.getElementById('btnSubmit');
-        const formStatus = document.getElementById('formStatus');
         const charCount = document.getElementById('charCount');
         const locationInfo = document.getElementById('locationInfo');
         const locationCoords = document.getElementById('locationCoords');
@@ -175,7 +171,7 @@ export default class AddStoryPage {
 
         btnCurrentLocation.addEventListener('click', async () => {
             this.#switchLocationMode('current', btnNoLocation, btnCurrentLocation, btnChooseLocation, locationInfo, mapContainer);
-            await this.#getCurrentLocation(locationInfo, locationCoords, formStatus);
+            await this.#getCurrentLocation(locationInfo, locationCoords);
         });
 
         btnChooseLocation.addEventListener('click', async () => {
@@ -187,8 +183,14 @@ export default class AddStoryPage {
             this.#confirmMapLocation(locationInfo, locationCoords, mapContainer);
         });
 
-        btnCancel.addEventListener('click', () => {
-            if (confirm('Apakah Anda yakin ingin membatalkan? Data yang diisi akan hilang.')) {
+        btnCancel.addEventListener('click', async () => {
+            const confirmed = await showConfirm(
+                'Batalkan Pembuatan Cerita?',
+                'Data yang sudah diisi akan hilang. Apakah anda yakin?',
+                'Ya, Batalkan',
+                'Tidak'
+            );
+            if (confirmed) {
                 this.#closeCamera();
                 window.location.hash = '#/';
             }
@@ -198,9 +200,7 @@ export default class AddStoryPage {
             e.preventDefault();
             await this.#handleSubmit(
                 photoInput,
-                description,
-                btnSubmit,
-                formStatus
+                description
             );
         });
 
@@ -233,7 +233,7 @@ export default class AddStoryPage {
             this.#videoElement.srcObject = this.#stream;
         } catch (error) {
             console.error('Error opening camera:', error);
-            alert('Gagal membuka kamera. Pastikan Anda memberikan izin akses kamera.');
+            showError('Gagal Membuka Kamera', 'Pastikan Anda memberikan izin akses pada kamera.')
         }
     }
 
@@ -293,11 +293,11 @@ export default class AddStoryPage {
 
     async #getCurrentLocation(locationInfo, locationCoords, formStatus) {
         if (!navigator.geolocation) {
-            showFormStatus(formStatus, 'Browser Anda tidak mendukung geolocation.', 'error');
+            showError('Goelocation Tidak Didukung', 'Browser Anda tidak mendukung geolocation.')
             return;
         }
 
-        showFormStatus(formStatus, 'Mengambil lokasi...', 'info');
+        showLoading('Mengambil Lokasi...', 'Mohon tunggu sebentar');
 
         navigator.geolocation.getCurrentPosition(
             (position) => {
@@ -307,14 +307,13 @@ export default class AddStoryPage {
                 locationCoords.textContent = `Lat: ${this.#currentLat.toFixed(6)}, Lon: ${this.#currentLon.toFixed(6)}`;
                 locationInfo.classList.remove('hidden');
                 
-                showFormStatus(formStatus, 'Lokasi berhasil diambil!', 'success');
-                setTimeout(() => {
-                    formStatus.classList.add('sr-only');
-                }, 3000);
+                closeLoading();
+                showSuccess('Lokasi Berhasil Diambil.', '', 1500)
             },
             (error) => {
                 console.error('Geolocation error:', error);
-                showFormStatus(formStatus, 'Gagal mengambil lokasi. Pastikan Anda mengizinkan akses lokasi.', 'error');
+                closeLoading();
+                showError('Gagal Mengambil Lokasi', 'Pastikan Anda memberikan izin akses lokasi');
             }
         );
     }
@@ -324,6 +323,7 @@ export default class AddStoryPage {
 
         if (typeof L === 'undefined') {
             console.error('Leaflet library not loaded');
+            showError('Error', 'Library peta tidak dapat dimuat.');
             return;
         }
 
@@ -373,7 +373,7 @@ export default class AddStoryPage {
 
     #confirmMapLocation(locationInfo, locationCoords, mapContainer) {
         if (!this.#currentLat || !this.#currentLon) {
-            alert('Silakan pilih lokasi di peta terlebih dahulu!');
+            showError('Lokasi Belum Ditentukan', 'Silahkan pilih lokasi terlebih dahulu atau gunakan tanpa lokasi.');
             return;
         }
 
@@ -381,8 +381,7 @@ export default class AddStoryPage {
         locationInfo.classList.remove('hidden');
         mapContainer.classList.add('hidden');
 
-        this.#currentLat = null;
-        this.#currentLon = null;
+        showSuccess('Lokasi Dikonfirmasi!', '', 1500);
     }
 
     #handlePhotoSelect(event, imagePreview, previewImg) {
@@ -391,13 +390,13 @@ export default class AddStoryPage {
         if (!file) return;
 
         if (!file.type.match('image.*')) {
-            alert('File harus berupa gambar!');
+            showError('File Tidak Valid', 'File harus berupa gambar');
             event.target.value = '';
             return;
         }
 
         if (file.size > 1024 * 1024) {
-            alert('Ukuran file maksimal 1MB!');
+            showError('File Terlalu Besar', 'Ukuran file maksimal 1MB!');
             event.target.value = '';
             return;
         }
@@ -419,14 +418,14 @@ export default class AddStoryPage {
         this.#selectedFile = null;
     }
 
-    async #handleSubmit(photoInput, description, btnSubmit, formStatus) {
+    async #handleSubmit(photoInput, description) {
         if (!this.#selectedFile) {
-            showFormStatus(formStatus, 'Foto harus dipilih!', 'error');
+            showError('Foto Harus Dipilih!', 'Silahkan pilih foto untuk cerinta Anda.');
             return;
         }
 
         if (!description.value.trim()) {
-            showFormStatus(formStatus, 'Deskripsi harus diisi!', 'error');
+            showError('Deskripsi Harus Diisi!', 'Silahkan isi deskripsi');
             description.focus();
             return;
         }
@@ -441,8 +440,7 @@ export default class AddStoryPage {
             storyData.lon = this.#currentLon;
         }
 
-        setButtonLoading(btnSubmit, true, 'Memposting...');
-        showFormStatus(formStatus, 'Sedang memposting cerita...', 'info');
+        showLoading('Memposting Cerita...', 'Mohon tunggu sebentar');
 
         try {
             const token = localStorage.getItem('token');
@@ -455,9 +453,15 @@ export default class AddStoryPage {
             }
 
             if (response.error === false) {
-                showFormStatus(formStatus, 'Cerita berhasil diposting! Mengalihkan...', 'success');
+                closeLoading();
                 
                 this.#closeCamera();
+
+                await showSuccess(
+                    'Cerita Berhasil Diposting!',
+                    'Cerita Anda telah ditambahkan.',
+                    2000
+                );
 
                 setTimeout(() => {
                     window.location.hash = '#/';
@@ -467,6 +471,7 @@ export default class AddStoryPage {
             }
         } catch (error) {
             console.error('Error posting story:', error);
+            closeLoading();
 
             let errorMessage = 'Terjadi kesalahan saat memposting cerita. Silakan coba lagi.';
 
@@ -474,8 +479,7 @@ export default class AddStoryPage {
                 errorMessage = error.message;
             }
 
-            showFormStatus(formStatus, errorMessage, 'error');
-            setButtonLoading(btnSubmit, false);
+            showError('Gagal Memposting Cerita', errorMessage);
         }
     }
 }
