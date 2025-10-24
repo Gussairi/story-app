@@ -100,6 +100,11 @@ header {
     transform: scale(0.95);
 }
 
+.drawer-button:focus-visible {
+    outline: 3px solid #f59e0b;
+    outline-offset: 2px;
+}
+
 .drawer-backdrop {
     display: none;
     position: fixed;
@@ -162,6 +167,14 @@ header {
 .nav-list li a:hover::before {
     transform: scaleY(1);
 }
+
+.nav-list li a:focus-visible {
+    background: linear-gradient(90deg, rgba(99, 102, 241, 0.15) 0%, transparent 100%);
+    color: #6366f1;
+    outline: 2px solid #6366f1;
+    outline-offset: -2px;
+}
+
 .main-content {
     padding-block: 32px;
     min-height: calc(100vh - 130px);
@@ -290,6 +303,7 @@ header {
     cursor: pointer;
     transition: all 200ms ease;
     border: 1px solid #e2e8f0;
+    position: relative;
 }
 
 .story-card:hover {
@@ -298,6 +312,48 @@ header {
         0 10px 15px -3px rgba(0, 0, 0, 0.1),
         0 4px 6px -2px rgba(0, 0, 0, 0.05);
     border-color: #818cf8;
+}
+
+.story-card:focus {
+    outline: 3px solid #6366f1;
+    outline-offset: 3px;
+    box-shadow: 0 0 0 6px rgba(99, 102, 241, 0.15);
+    transform: translateY(-4px);
+}
+
+.story-card:focus-visible {
+    outline: 3px solid #6366f1;
+    outline-offset: 3px;
+    box-shadow: 0 0 0 6px rgba(99, 102, 241, 0.15);
+}
+
+.story-card:focus:not(:focus-visible) {
+    outline: none;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    transform: none;
+}
+
+.story-card:active {
+    transform: translateY(-2px);
+    transition-duration: 0.1s;
+}
+
+.story-card.focused {
+    border-color: #6366f1;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.story-card h2 {
+    color: #0f172a;
+    font-size: 1.25rem;
+    font-weight: 600;
+    line-height: 1.3;
+    margin-bottom: 8px;
+}
+
+.story-card time {
+    font-style: italic;
+    color: #94a3b8;
 }
 
 .story-image-wrapper {
@@ -1056,6 +1112,55 @@ form button[type='submit']:disabled {
 .hidden {
     display: none !important;
 }
+
+.skip-link {
+    position: absolute;
+    top: -50px;
+    left: 0;
+    background: #6366f1;
+    color: #ffffff;
+    padding: 12px 24px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1rem;
+    z-index: 10001;
+    border-radius: 0 0 8px 0;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    transition: top 200ms ease;
+    outline: none;
+}
+
+.skip-link:focus {
+    top: 0;
+    outline: 3px solid #f59e0b;
+    outline-offset: 2px;
+}
+
+.skip-link:hover {
+    background: #4f46e5;
+}
+
+#main-content:focus {
+    outline: none;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+    outline: 3px solid #6366f1;
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2);
+}
+
+.pagination-btn:focus-visible,
+.page-number-btn:focus-visible {
+    outline: 3px solid #6366f1;
+    outline-offset: 2px;
+    z-index: 1;
+}
+
 @media screen and (max-width: 768px) {
     :root {
         --spacing-xl: 24px;
@@ -1181,6 +1286,15 @@ form button[type='submit']:disabled {
 
     .error-page p {
         font-size: 1.25rem;
+    }
+
+    .skip-link {
+        padding: 10px 20px;
+        font-size: 0.875rem;
+    }
+
+    .story-card:hover .story-image {
+        transform: scale(1.05);
     }
 }
 @media screen and (max-width: 375px) {
@@ -2543,6 +2657,10 @@ html {
 
     .story-card:hover {
         transform: translateY(-8px);
+    }
+
+    .story-card:focus {
+        transform: translateY(-6px);
     }
 
     .pagination-container {

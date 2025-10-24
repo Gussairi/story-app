@@ -53,19 +53,19 @@ export default class HomePage {
 
                 <div id="paginationContainer" class="pagination-container hidden">
                     <button id="btnFirst" class="pagination-btn" title="Halaman Pertama">
-                        << Pertama
+                        &lt;&lt; Pertama
                     </button>
                     <button id="btnPrev" class="pagination-btn" title="Halaman Sebelumnya">
-                        < Sebelumnya
+                        &lt; Sebelumnya
                     </button>
                     
                     <div id="pageNumbers" class="page-numbers"></div>
                     
                     <button id="btnNext" class="pagination-btn" title="Halaman Berikutnya">
-                        Berikutnya >
+                        Berikutnya &gt;
                     </button>
                     <button id="btnLast" class="pagination-btn" title="Halaman Terakhir">
-                        Terakhir >>
+                        Terakhir &gt;&gt;
                     </button>
                 </div>
             </section>
@@ -145,26 +145,25 @@ export default class HomePage {
                 storiesContainer.innerHTML = response.listStory
                     .map(
                         (story) => `
-                    <article class="story-card" data-id="${story.id}">
-                        <div class="story-image-wrapper">
-                            <img src="${story.photoUrl}" alt="${story.name}" class="story-image" loading="lazy" />
-                        </div>
-                        <div class="story-content">
-                            <h2 class="story-name">${story.name}</h2>
-                            <p class="story-description">${this.#truncateText(story.description, 100)}</p>
-                            <p class="story-date">${showFormattedDate(story.createdAt, 'id-ID')}</p>
-                        </div>
-                    </article>
-                `
+                            <article class="story-card" role="listitem" tabindex="0" data-id="${story.id}" aria-label="Story: ${this.#escapeHtml(story.name)}" >
+                                <div class="story-image-wrapper">
+                                    <img src="${story.photoUrl}" alt="${this.#escapeHtml(story.name)}" class="story-image" loading="lazy" />
+                                </div>
+                                <div class="story-content">
+                                    <h2 class="story-name">${this.#escapeHtml(story.name)}</h2>
+                                    <p class="story-description">${this.#escapeHtml(this.#truncateText(story.description, 100))}</p>
+                                    <p class="story-date">
+                                        <time datetime="${story.createdAt}">
+                                            ${showFormattedDate(story.createdAt, 'id-ID')}
+                                        </time>
+                                    </p>
+                                </div>
+                            </article>
+                        `
                     )
                     .join('');
 
-                document.querySelectorAll('.story-card').forEach((card) => {
-                    card.addEventListener('click', () => {
-                        const storyId = card.dataset.id;
-                        window.location.hash = `#/story/${storyId}`;
-                    });
-                });
+                this.#setupStoryCardListeners();
 
                 this.#updatePageInfo(startIndex, endIndex, storyCount);
                 this.#updatePagination();
@@ -175,6 +174,7 @@ export default class HomePage {
             }
         } catch (error) {
             console.error('Error loading stories:', error);
+            closeLoading();
             storiesContainer.innerHTML = `
                 <div class="error-message">
                     <p>Gagal memuat cerita. Silakan coba lagi.</p>
@@ -182,6 +182,41 @@ export default class HomePage {
                 </div>
             `;
         }
+    }
+
+    #setupStoryCardListeners() {
+        const storyCards = document.querySelectorAll('.story-card');
+        
+        storyCards.forEach(card => {
+            card.addEventListener('click', () => {
+                this.#navigateToStory(card.dataset.id);
+            });
+
+            card.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    this.#navigateToStory(card.dataset.id);
+                }
+            });
+
+            card.addEventListener('focus', () => {
+                card.classList.add('focused');
+            });
+
+            card.addEventListener('blur', () => {
+                card.classList.remove('focused');
+            });
+        });
+    }
+
+    #navigateToStory(storyId) {
+        window.location.hash = `#/story/${storyId}`;
+    }
+
+    #escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
 
     #updatePageInfo(startIndex, endIndex, totalOnPage) {
@@ -223,13 +258,21 @@ export default class HomePage {
         btnNext.disabled = isLastPage;
         btnLast.disabled = isLastPage;
 
+        btnFirst.setAttribute('aria-label', `Go to first page`);
+        btnPrev.setAttribute('aria-label', `Go to previous page, page ${this.#currentPage - 1}`);
+        btnNext.setAttribute('aria-label', `Go to next page, page ${this.#currentPage + 1}`);
+        btnLast.setAttribute('aria-label', `Go to last page, page ${this.#totalPages}`);
+
         const pageNumbersHTML = this.#generatePageNumbers();
         pageNumbers.innerHTML = pageNumbersHTML;
 
         pageNumbers.querySelectorAll('.page-number-btn').forEach((btn) => {
+            const pageNum = parseInt(btn.dataset.page);
+            btn.setAttribute('aria-label', `Go to page ${pageNum}`);
+            btn.setAttribute('aria-current', pageNum === this.#currentPage ? 'page' : 'false');
+            
             btn.addEventListener('click', (e) => {
-                const page = parseInt(e.target.dataset.page);
-                this.#goToPage(page);
+                this.#goToPage(pageNum);
             });
         });
     }
@@ -253,7 +296,7 @@ export default class HomePage {
                 `<button class="page-number-btn" data-page="1">1</button>`
             );
             if (startPage > 2) {
-                pages.push(`<span class="page-ellipsis">...</span>`);
+                pages.push(`<span class="page-ellipsis" aria-hidden="true">...</span>`);
             }
         }
 
@@ -266,7 +309,7 @@ export default class HomePage {
 
         if (endPage < this.#totalPages) {
             if (endPage < this.#totalPages - 1) {
-                pages.push(`<span class="page-ellipsis">...</span>`);
+                pages.push(`<span class="page-ellipsis" aria-hidden="true">...</span>`);
             }
             pages.push(
                 `<button class="page-number-btn" data-page="${this.#totalPages}">${this.#totalPages}</button>`
