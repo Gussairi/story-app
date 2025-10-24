@@ -1,6 +1,11 @@
-import API  from "../../data/api"
-import { isValidEmail } from "../../utils/helper"
-import { showLoading, closeLoading, showSuccess, showError } from "../../utils/swal-helper";
+import API from '../../data/api';
+import { isValidEmail } from '../../utils/helper';
+import {
+    showLoading,
+    closeLoading,
+    showSuccess,
+    showError,
+} from '../../utils/swal-helper';
 
 export default class LoginPage {
     async render() {
@@ -50,7 +55,7 @@ export default class LoginPage {
             e.preventDefault();
 
             if (!emailInput.value.trim() || !passwordInput.value.trim()) {
-                showError('Validasi Gagal', 'Email dan password harus diisi.')
+                showError('Validasi Gagal', 'Email dan password harus diisi.');
                 return;
             }
 
@@ -64,7 +69,7 @@ export default class LoginPage {
             try {
                 const response = await API.login({
                     email: emailInput.value.trim(),
-                    password: passwordInput.value.trim()
+                    password: passwordInput.value.trim(),
                 });
 
                 if (response.error === false && response.loginResult) {
@@ -85,18 +90,25 @@ export default class LoginPage {
                 console.error('Login error:', error);
                 closeLoading();
 
-                let errorMessage = 'Terjadi kesalahan saat login. Silakan coba lagi.';
-                
+                let errorMessage =
+                    'Terjadi kesalahan saat login. Silakan coba lagi.';
+
                 const errorString = error.message.toLowerCase();
-                
-                if (errorString.includes('unauthorized') || 
-                    errorString.includes('invalid') || 
+
+                if (
+                    errorString.includes('unauthorized') ||
+                    errorString.includes('invalid') ||
                     errorString.includes('wrong') ||
-                    errorString.includes('incorrect')) {
-                    errorMessage = 'Email atau password salah. Silakan coba lagi.';
-                } else if (errorString.includes('not found') || 
-                    errorString.includes('user not found')) {
-                    errorMessage = 'Akun tidak ditemukan. Silakan daftar terlebih dahulu.';
+                    errorString.includes('incorrect')
+                ) {
+                    errorMessage =
+                        'Email atau password salah. Silakan coba lagi.';
+                } else if (
+                    errorString.includes('not found') ||
+                    errorString.includes('user not found')
+                ) {
+                    errorMessage =
+                        'Akun tidak ditemukan. Silakan daftar terlebih dahulu.';
                 } else if (errorString.includes('email')) {
                     errorMessage = 'Email tidak valid.';
                 } else if (errorString.includes('password')) {

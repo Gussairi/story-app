@@ -1,6 +1,11 @@
-import API from "../../data/api";
-import { isValidEmail, isValidPassword } from "../../utils/helper";
-import { showLoading, closeLoading, showSuccess, showError } from "../../utils/swal-helper";
+import API from '../../data/api';
+import { isValidEmail, isValidPassword } from '../../utils/helper';
+import {
+    showLoading,
+    closeLoading,
+    showSuccess,
+    showError,
+} from '../../utils/swal-helper';
 
 export default class RegisterPage {
     async render() {
@@ -102,13 +107,19 @@ export default class RegisterPage {
             }
 
             if (!isValidPassword(passwordInput.value)) {
-                showError('Password Tidak Valid', 'Password harus minimal 8 karakter.');
+                showError(
+                    'Password Tidak Valid',
+                    'Password harus minimal 8 karakter.'
+                );
                 passwordInput.focus();
                 return;
             }
 
             if (passwordInput.value !== confirmPasswordInput.value) {
-                showError('Password Tidak Sama', 'Password dan konfirmasi password tidak sama.');
+                showError(
+                    'Password Tidak Sama',
+                    'Password dan konfirmasi password tidak sama.'
+                );
                 confirmPasswordInput.focus();
                 return;
             }
@@ -119,7 +130,7 @@ export default class RegisterPage {
                 const response = await API.register({
                     name: nameInput.value.trim(),
                     email: emailInput.value.trim(),
-                    password: passwordInput.value.trim()
+                    password: passwordInput.value.trim(),
                 });
 
                 if (response.error === false) {
@@ -129,7 +140,7 @@ export default class RegisterPage {
                         'Register Berhasil',
                         'Akun Anda telah dibuat. Silahkan login.',
                         2000
-                    )
+                    );
 
                     form.reset();
 
@@ -142,15 +153,19 @@ export default class RegisterPage {
             } catch (error) {
                 console.error('Register error:', error);
                 closeLoading();
-                
-                let errorMessage = 'Terjadi kesalahan saat mendaftar. Silakan coba lagi.';
-                
+
+                let errorMessage =
+                    'Terjadi kesalahan saat mendaftar. Silakan coba lagi.';
+
                 const errorString = error.message.toLowerCase();
-                
-                if (errorString.includes('email is already taken') || 
-                    errorString.includes('email already') || 
-                    errorString.includes('already taken')) {
-                    errorMessage = 'Email sudah terdaftar. Silakan gunakan email lain atau login jika Anda sudah memiliki akun.';
+
+                if (
+                    errorString.includes('email is already taken') ||
+                    errorString.includes('email already') ||
+                    errorString.includes('already taken')
+                ) {
+                    errorMessage =
+                        'Email sudah terdaftar. Silakan gunakan email lain atau login jika Anda sudah memiliki akun.';
                     emailInput.focus();
                     emailInput.select();
                 } else if (errorString.includes('email')) {
@@ -165,13 +180,16 @@ export default class RegisterPage {
                 } else if (error.message) {
                     errorMessage = error.message;
                 }
-                
+
                 await showError('Registrasi Gagal', errorMessage);
             }
         });
 
         confirmPasswordInput.addEventListener('input', () => {
-            if (confirmPasswordInput.value && passwordInput.value !== confirmPasswordInput.value) {
+            if (
+                confirmPasswordInput.value &&
+                passwordInput.value !== confirmPasswordInput.value
+            ) {
                 confirmPasswordInput.setCustomValidity('Password tidak sama');
             } else {
                 confirmPasswordInput.setCustomValidity('');

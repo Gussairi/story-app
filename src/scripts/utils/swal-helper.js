@@ -1,7 +1,10 @@
 import Swal from 'sweetalert2';
 import 'sweetalert2/dist/sweetalert2.min.css';
 
-export const showLoading = (title = 'Loading...', text = 'Mohon tunggu sebentar') => {
+export const showLoading = (
+    title = 'Loading...',
+    text = 'Mohon tunggu sebentar'
+) => {
     Swal.fire({
         title,
         text,
@@ -10,7 +13,7 @@ export const showLoading = (title = 'Loading...', text = 'Mohon tunggu sebentar'
         showConfirmButton: false,
         didOpen: () => {
             Swal.showLoading();
-        }
+        },
     });
 };
 
@@ -25,7 +28,7 @@ export const showSuccess = (title, text = '', timer = 2000) => {
         text,
         timer,
         showConfirmButton: timer ? false : true,
-        timerProgressBar: true
+        timerProgressBar: true,
     });
 };
 
@@ -35,11 +38,16 @@ export const showError = (title, text = '') => {
         title,
         text,
         confirmButtonText: 'OK',
-        confirmButtonColor: '#4CAF50'
+        confirmButtonColor: '#4CAF50',
     });
 };
 
-export const showConfirm = async (title, text = '', confirmButtonText = 'Ya', cancelButtonText = 'Batal') => {
+export const showConfirm = async (
+    title,
+    text = '',
+    confirmButtonText = 'Ya',
+    cancelButtonText = 'Batal'
+) => {
     const result = await Swal.fire({
         icon: 'question',
         title,
@@ -49,8 +57,8 @@ export const showConfirm = async (title, text = '', confirmButtonText = 'Ya', ca
         cancelButtonText,
         confirmButtonColor: '#4CAF50',
         cancelButtonColor: '#d33',
-        reverseButtons: true
+        reverseButtons: true,
     });
-    
+
     return result.isConfirmed;
 };

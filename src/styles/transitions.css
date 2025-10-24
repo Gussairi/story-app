@@ -1,232 +1,219 @@
-/* ===== VIEW TRANSITIONS API ===== */
-
-/* Default page transition */
 ::view-transition-old(root),
 ::view-transition-new(root) {
-  animation-duration: 0.3s;
-  animation-timing-function: ease-in-out;
+    animation-duration: 0.3s;
+    animation-timing-function: ease-in-out;
 }
 
-/* Fade transition (default) */
 ::view-transition-old(root) {
-  animation-name: fade-out;
+    animation-name: fade-out;
 }
 
 ::view-transition-new(root) {
-  animation-name: fade-in;
+    animation-name: fade-in;
 }
 
 @keyframes fade-out {
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 0;
-  }
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
 }
 
 @keyframes fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
 }
 
-/* ===== CUSTOM TRANSITIONS ===== */
-
-/* Slide transition dengan direction */
-[data-direction="forward"] ::view-transition-old(root) {
-  animation-name: slide-out-left;
+[data-direction='forward'] ::view-transition-old(root) {
+    animation-name: slide-out-left;
 }
 
-[data-direction="forward"] ::view-transition-new(root) {
-  animation-name: slide-in-right;
+[data-direction='forward'] ::view-transition-new(root) {
+    animation-name: slide-in-right;
 }
 
-[data-direction="backward"] ::view-transition-old(root) {
-  animation-name: slide-out-right;
+[data-direction='backward'] ::view-transition-old(root) {
+    animation-name: slide-out-right;
 }
 
-[data-direction="backward"] ::view-transition-new(root) {
-  animation-name: slide-in-left;
+[data-direction='backward'] ::view-transition-new(root) {
+    animation-name: slide-in-left;
 }
 
 @keyframes slide-out-left {
-  from {
-    transform: translateX(0);
-    opacity: 1;
-  }
-  to {
-    transform: translateX(-30%);
-    opacity: 0;
-  }
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(-30%);
+        opacity: 0;
+    }
 }
 
 @keyframes slide-in-right {
-  from {
-    transform: translateX(30%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
+    from {
+        transform: translateX(30%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
 }
 
 @keyframes slide-out-right {
-  from {
-    transform: translateX(0);
-    opacity: 1;
-  }
-  to {
-    transform: translateX(30%);
-    opacity: 0;
-  }
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(30%);
+        opacity: 0;
+    }
 }
 
 @keyframes slide-in-left {
-  from {
-    transform: translateX(-30%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
+    from {
+        transform: translateX(-30%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
 }
 
-/* Zoom transition untuk detail page */
-[data-transition="detail"] ::view-transition-old(root) {
-  animation-name: zoom-out;
+[data-transition='detail'] ::view-transition-old(root) {
+    animation-name: zoom-out;
 }
 
-[data-transition="detail"] ::view-transition-new(root) {
-  animation-name: zoom-in;
+[data-transition='detail'] ::view-transition-new(root) {
+    animation-name: zoom-in;
 }
 
 @keyframes zoom-out {
-  from {
-    transform: scale(1);
-    opacity: 1;
-  }
-  to {
-    transform: scale(0.9);
-    opacity: 0;
-  }
+    from {
+        transform: scale(1);
+        opacity: 1;
+    }
+    to {
+        transform: scale(0.9);
+        opacity: 0;
+    }
 }
 
 @keyframes zoom-in {
-  from {
-    transform: scale(1.1);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
+    from {
+        transform: scale(1.1);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
 }
 
-/* Scale transition untuk form pages */
-[data-transition="form"] ::view-transition-old(root) {
-  animation-name: scale-fade-out;
+[data-transition='form'] ::view-transition-old(root) {
+    animation-name: scale-fade-out;
 }
 
-[data-transition="form"] ::view-transition-new(root) {
-  animation-name: scale-fade-in;
+[data-transition='form'] ::view-transition-new(root) {
+    animation-name: scale-fade-in;
 }
 
 @keyframes scale-fade-out {
-  from {
-    transform: scale(1);
-    opacity: 1;
-  }
-  to {
-    transform: scale(0.95);
-    opacity: 0;
-  }
+    from {
+        transform: scale(1);
+        opacity: 1;
+    }
+    to {
+        transform: scale(0.95);
+        opacity: 0;
+    }
 }
 
 @keyframes scale-fade-in {
-  from {
-    transform: scale(1.05);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
+    from {
+        transform: scale(1.05);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
 }
 
-/* Rotate transition untuk auth pages */
-[data-transition="auth"] ::view-transition-old(root) {
-  animation-name: rotate-out;
+[data-transition='auth'] ::view-transition-old(root) {
+    animation-name: rotate-out;
 }
 
-[data-transition="auth"] ::view-transition-new(root) {
-  animation-name: rotate-in;
+[data-transition='auth'] ::view-transition-new(root) {
+    animation-name: rotate-in;
 }
 
 @keyframes rotate-out {
-  from {
-    transform: perspective(800px) rotateY(0deg);
-    opacity: 1;
-  }
-  to {
-    transform: perspective(800px) rotateY(-15deg);
-    opacity: 0;
-  }
+    from {
+        transform: perspective(800px) rotateY(0deg);
+        opacity: 1;
+    }
+    to {
+        transform: perspective(800px) rotateY(-15deg);
+        opacity: 0;
+    }
 }
 
 @keyframes rotate-in {
-  from {
-    transform: perspective(800px) rotateY(15deg);
-    opacity: 0;
-  }
-  to {
-    transform: perspective(800px) rotateY(0deg);
-    opacity: 1;
-  }
+    from {
+        transform: perspective(800px) rotateY(15deg);
+        opacity: 0;
+    }
+    to {
+        transform: perspective(800px) rotateY(0deg);
+        opacity: 1;
+    }
 }
 
-/* Smooth transition untuk story cards */
 .story-card {
-  view-transition-name: none;
+    view-transition-name: none;
 }
 
 .story-card:hover {
-  view-transition-name: story-card;
+    view-transition-name: story-card;
 }
 
-/* Optimize untuk mobile */
 @media (prefers-reduced-motion: reduce) {
-  ::view-transition-old(root),
-  ::view-transition-new(root) {
-    animation-duration: 0.1s;
-    animation-timing-function: ease;
-  }
-  
-  [data-direction] ::view-transition-old(root),
-  [data-direction] ::view-transition-new(root),
-  [data-transition] ::view-transition-old(root),
-  [data-transition] ::view-transition-new(root) {
-    animation: none;
-  }
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+        animation-duration: 0.1s;
+        animation-timing-function: ease;
+    }
+
+    [data-direction] ::view-transition-old(root),
+    [data-direction] ::view-transition-new(root),
+    [data-transition] ::view-transition-old(root),
+    [data-transition] ::view-transition-new(root) {
+        animation: none;
+    }
 }
 
-/* Fallback untuk browser yang tidak support */
 @supports not (view-transition-name: none) {
-  .main-content {
-    animation: simple-fade-in 0.3s ease-in-out;
-  }
-  
-  @keyframes simple-fade-in {
-    from {
-      opacity: 0;
+    .main-content {
+        animation: simple-fade-in 0.3s ease-in-out;
     }
-    to {
-      opacity: 1;
+
+    @keyframes simple-fade-in {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
     }
-  }
 }

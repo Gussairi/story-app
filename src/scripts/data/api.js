@@ -1,21 +1,19 @@
 import CONFIG from '../config';
 
 const API = {
-    async register({name, email, password}) {
+    async register({ name, email, password }) {
         try {
             const response = await fetch(`${CONFIG.BASE_URL}/register`, {
                 method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json' 
+                headers: {
+                    'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({name, email, password})
+                body: JSON.stringify({ name, email, password }),
             });
             const responseJson = await response.json();
 
             if (!response.ok) {
-                throw new Error(
-                    responseJson.message || 'Failed to register'
-                );
+                throw new Error(responseJson.message || 'Failed to register');
             }
 
             return responseJson;
@@ -25,21 +23,19 @@ const API = {
         }
     },
 
-    async login({email, password}) {
+    async login({ email, password }) {
         try {
             const response = await fetch(`${CONFIG.BASE_URL}/login`, {
                 method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json' 
+                headers: {
+                    'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({email, password})
+                body: JSON.stringify({ email, password }),
             });
             const responseJson = await response.json();
 
             if (!response.ok) {
-                throw new Error(
-                    responseJson.message || 'Failed to login'
-                );
+                throw new Error(responseJson.message || 'Failed to login');
             }
 
             return responseJson;
@@ -64,8 +60,8 @@ const API = {
 
             const response = await fetch(`${CONFIG.BASE_URL}/stories`, {
                 method: 'POST',
-                headers: { 
-                    'Authorization': `Bearer ${token}` 
+                headers: {
+                    Authorization: `Bearer ${token}`,
                 },
                 body: formData,
             });
@@ -83,7 +79,7 @@ const API = {
             throw error;
         }
     },
-    
+
     async addStoryGuest(story) {
         try {
             const formData = new FormData();
@@ -116,20 +112,23 @@ const API = {
         }
     },
 
-    async getStories(token, {page = 1, size = 20, location = 0} = {}) {
+    async getStories(token, { page = 1, size = 20, location = 0 } = {}) {
         try {
             const params = new URLSearchParams({
                 page: String(page),
                 size: String(size),
-                location: String(location)
+                location: String(location),
             });
-            
-            const response = await fetch(`${CONFIG.BASE_URL}/stories?${params.toString()}`, {
-                method: 'GET',
-                headers: { 
-                    'Authorization': `Bearer ${token}`
-                },
-            });
+
+            const response = await fetch(
+                `${CONFIG.BASE_URL}/stories?${params.toString()}`,
+                {
+                    method: 'GET',
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
             const responseJson = await response.json();
 
             if (!response.ok) {
@@ -150,13 +149,16 @@ const API = {
             if (!id) {
                 throw new Error('Missing story ID');
             }
-            
-            const response = await fetch(`${CONFIG.BASE_URL}/stories/${encodeURIComponent(id)}`, {
-                method: 'GET',
-                headers: { 
-                    'Authorization': `Bearer ${token}`
-                },
-            });
+
+            const response = await fetch(
+                `${CONFIG.BASE_URL}/stories/${encodeURIComponent(id)}`,
+                {
+                    method: 'GET',
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
             const responseJson = await response.json();
 
             if (!response.ok) {
@@ -171,6 +173,6 @@ const API = {
             throw error;
         }
     },
-}
+};
 
 export default API;

@@ -1,5 +1,11 @@
-import API from "../../data/api";
-import { showLoading, closeLoading, showSuccess, showError, showConfirm } from "../../utils/swal-helper";
+import API from '../../data/api';
+import {
+    showLoading,
+    closeLoading,
+    showSuccess,
+    showError,
+    showConfirm,
+} from '../../utils/swal-helper';
 
 export default class AddStoryPage {
     #previewImage = null;
@@ -131,26 +137,52 @@ export default class AddStoryPage {
         const btnCloseCamera = document.getElementById('btnCloseCamera');
 
         const btnNoLocation = document.getElementById('btnNoLocation');
-        const btnCurrentLocation = document.getElementById('btnCurrentLocation');
+        const btnCurrentLocation =
+            document.getElementById('btnCurrentLocation');
         const btnChooseLocation = document.getElementById('btnChooseLocation');
         const mapContainer = document.getElementById('mapContainer');
-        const btnConfirmLocation = document.getElementById('btnConfirmLocation');
+        const btnConfirmLocation =
+            document.getElementById('btnConfirmLocation');
 
         btnUploadFile.addEventListener('click', () => {
-            this.#switchPhotoMode('upload', btnUploadFile, btnOpenCamera, cameraContainer, photoInput);
+            this.#switchPhotoMode(
+                'upload',
+                btnUploadFile,
+                btnOpenCamera,
+                cameraContainer,
+                photoInput
+            );
         });
 
         btnOpenCamera.addEventListener('click', async () => {
-            await this.#switchPhotoMode('camera', btnUploadFile, btnOpenCamera, cameraContainer, photoInput);
+            await this.#switchPhotoMode(
+                'camera',
+                btnUploadFile,
+                btnOpenCamera,
+                cameraContainer,
+                photoInput
+            );
         });
 
         btnCloseCamera.addEventListener('click', () => {
             this.#closeCamera();
-            this.#switchPhotoMode('upload', btnUploadFile, btnOpenCamera, cameraContainer, photoInput);
+            this.#switchPhotoMode(
+                'upload',
+                btnUploadFile,
+                btnOpenCamera,
+                cameraContainer,
+                photoInput
+            );
         });
 
         btnCapture.addEventListener('click', () => {
-            this.#capturePhoto(imagePreview, previewImg, cameraContainer, btnUploadFile, btnOpenCamera);
+            this.#capturePhoto(
+                imagePreview,
+                previewImg,
+                cameraContainer,
+                btnUploadFile,
+                btnOpenCamera
+            );
         });
 
         photoInput.addEventListener('change', (e) => {
@@ -166,21 +198,46 @@ export default class AddStoryPage {
         });
 
         btnNoLocation.addEventListener('click', () => {
-            this.#switchLocationMode('none', btnNoLocation, btnCurrentLocation, btnChooseLocation, locationInfo, mapContainer);
+            this.#switchLocationMode(
+                'none',
+                btnNoLocation,
+                btnCurrentLocation,
+                btnChooseLocation,
+                locationInfo,
+                mapContainer
+            );
         });
 
         btnCurrentLocation.addEventListener('click', async () => {
-            this.#switchLocationMode('current', btnNoLocation, btnCurrentLocation, btnChooseLocation, locationInfo, mapContainer);
+            this.#switchLocationMode(
+                'current',
+                btnNoLocation,
+                btnCurrentLocation,
+                btnChooseLocation,
+                locationInfo,
+                mapContainer
+            );
             await this.#getCurrentLocation(locationInfo, locationCoords);
         });
 
         btnChooseLocation.addEventListener('click', async () => {
-            this.#switchLocationMode('map', btnNoLocation, btnCurrentLocation, btnChooseLocation, locationInfo, mapContainer);
+            this.#switchLocationMode(
+                'map',
+                btnNoLocation,
+                btnCurrentLocation,
+                btnChooseLocation,
+                locationInfo,
+                mapContainer
+            );
             await this.#initializeMapPicker();
         });
 
         btnConfirmLocation.addEventListener('click', () => {
-            this.#confirmMapLocation(locationInfo, locationCoords, mapContainer);
+            this.#confirmMapLocation(
+                locationInfo,
+                locationCoords,
+                mapContainer
+            );
         });
 
         btnCancel.addEventListener('click', async () => {
@@ -198,16 +255,19 @@ export default class AddStoryPage {
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            await this.#handleSubmit(
-                photoInput,
-                description
-            );
+            await this.#handleSubmit(photoInput, description);
         });
 
         description.focus();
     }
 
-    #switchPhotoMode(mode, btnUploadFile, btnOpenCamera, cameraContainer, photoInput) {
+    #switchPhotoMode(
+        mode,
+        btnUploadFile,
+        btnOpenCamera,
+        cameraContainer,
+        photoInput
+    ) {
         if (mode === 'upload') {
             btnUploadFile.classList.add('active');
             btnOpenCamera.classList.remove('active');
@@ -226,20 +286,23 @@ export default class AddStoryPage {
     async #openCamera() {
         try {
             this.#videoElement = document.getElementById('cameraPreview');
-            this.#stream = await navigator.mediaDevices.getUserMedia({ 
+            this.#stream = await navigator.mediaDevices.getUserMedia({
                 video: { facingMode: 'environment' },
-                audio: false 
+                audio: false,
             });
             this.#videoElement.srcObject = this.#stream;
         } catch (error) {
             console.error('Error opening camera:', error);
-            showError('Gagal Membuka Kamera', 'Pastikan Anda memberikan izin akses pada kamera.')
+            showError(
+                'Gagal Membuka Kamera',
+                'Pastikan Anda memberikan izin akses pada kamera.'
+            );
         }
     }
 
     #closeCamera() {
         if (this.#stream) {
-            this.#stream.getTracks().forEach(track => track.stop());
+            this.#stream.getTracks().forEach((track) => track.stop());
             this.#stream = null;
         }
         if (this.#videoElement) {
@@ -247,31 +310,50 @@ export default class AddStoryPage {
         }
     }
 
-    #capturePhoto(imagePreview, previewImg, cameraContainer, btnUploadFile, btnOpenCamera) {
+    #capturePhoto(
+        imagePreview,
+        previewImg,
+        cameraContainer,
+        btnUploadFile,
+        btnOpenCamera
+    ) {
         if (!this.#videoElement) return;
 
         const canvas = document.createElement('canvas');
         canvas.width = this.#videoElement.videoWidth;
         canvas.height = this.#videoElement.videoHeight;
-        
+
         const ctx = canvas.getContext('2d');
         ctx.drawImage(this.#videoElement, 0, 0);
 
-        canvas.toBlob((blob) => {
-            const file = new File([blob], 'camera-photo.jpg', { type: 'image/jpeg' });
-            this.#selectedFile = file;
+        canvas.toBlob(
+            (blob) => {
+                const file = new File([blob], 'camera-photo.jpg', {
+                    type: 'image/jpeg',
+                });
+                this.#selectedFile = file;
 
-            previewImg.src = URL.createObjectURL(blob);
-            imagePreview.classList.remove('hidden');
-            
-            this.#closeCamera();
-            cameraContainer.classList.add('hidden');
-            btnUploadFile.classList.add('active');
-            btnOpenCamera.classList.remove('active');
-        }, 'image/jpeg', 0.95);
+                previewImg.src = URL.createObjectURL(blob);
+                imagePreview.classList.remove('hidden');
+
+                this.#closeCamera();
+                cameraContainer.classList.add('hidden');
+                btnUploadFile.classList.add('active');
+                btnOpenCamera.classList.remove('active');
+            },
+            'image/jpeg',
+            0.95
+        );
     }
 
-    #switchLocationMode(mode, btnNoLocation, btnCurrentLocation, btnChooseLocation, locationInfo, mapContainer) {
+    #switchLocationMode(
+        mode,
+        btnNoLocation,
+        btnCurrentLocation,
+        btnChooseLocation,
+        locationInfo,
+        mapContainer
+    ) {
         btnNoLocation.classList.remove('active');
         btnCurrentLocation.classList.remove('active');
         btnChooseLocation.classList.remove('active');
@@ -293,7 +375,10 @@ export default class AddStoryPage {
 
     async #getCurrentLocation(locationInfo, locationCoords, formStatus) {
         if (!navigator.geolocation) {
-            showError('Goelocation Tidak Didukung', 'Browser Anda tidak mendukung geolocation.')
+            showError(
+                'Goelocation Tidak Didukung',
+                'Browser Anda tidak mendukung geolocation.'
+            );
             return;
         }
 
@@ -306,14 +391,17 @@ export default class AddStoryPage {
 
                 locationCoords.textContent = `Lat: ${this.#currentLat.toFixed(6)}, Lon: ${this.#currentLon.toFixed(6)}`;
                 locationInfo.classList.remove('hidden');
-                
+
                 closeLoading();
-                showSuccess('Lokasi Berhasil Diambil.', '', 1500)
+                showSuccess('Lokasi Berhasil Diambil.', '', 1500);
             },
             (error) => {
                 console.error('Geolocation error:', error);
                 closeLoading();
-                showError('Gagal Mengambil Lokasi', 'Pastikan Anda memberikan izin akses lokasi');
+                showError(
+                    'Gagal Mengambil Lokasi',
+                    'Pastikan Anda memberikan izin akses lokasi'
+                );
             }
         );
     }
@@ -327,7 +415,7 @@ export default class AddStoryPage {
             return;
         }
 
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
 
         const mapElement = document.getElementById('mapPicker');
         if (!mapElement) return;
@@ -342,8 +430,9 @@ export default class AddStoryPage {
         this.#map = L.map('mapPicker').setView([defaultLat, defaultLon], 5);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-            maxZoom: 19
+            attribution:
+                '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            maxZoom: 19,
         }).addTo(this.#map);
 
         if (this.#marker) {
@@ -361,7 +450,11 @@ export default class AddStoryPage {
                 this.#marker = L.marker(e.latlng).addTo(this.#map);
             }
 
-            this.#marker.bindPopup(`Lat: ${this.#currentLat.toFixed(6)}<br>Lon: ${this.#currentLon.toFixed(6)}`).openPopup();
+            this.#marker
+                .bindPopup(
+                    `Lat: ${this.#currentLat.toFixed(6)}<br>Lon: ${this.#currentLon.toFixed(6)}`
+                )
+                .openPopup();
         });
 
         setTimeout(() => {
@@ -373,7 +466,10 @@ export default class AddStoryPage {
 
     #confirmMapLocation(locationInfo, locationCoords, mapContainer) {
         if (!this.#currentLat || !this.#currentLon) {
-            showError('Lokasi Belum Ditentukan', 'Silahkan pilih lokasi terlebih dahulu atau gunakan tanpa lokasi.');
+            showError(
+                'Lokasi Belum Ditentukan',
+                'Silahkan pilih lokasi terlebih dahulu atau gunakan tanpa lokasi.'
+            );
             return;
         }
 
@@ -420,7 +516,10 @@ export default class AddStoryPage {
 
     async #handleSubmit(photoInput, description) {
         if (!this.#selectedFile) {
-            showError('Foto Harus Dipilih!', 'Silahkan pilih foto untuk cerinta Anda.');
+            showError(
+                'Foto Harus Dipilih!',
+                'Silahkan pilih foto untuk cerinta Anda.'
+            );
             return;
         }
 
@@ -432,7 +531,7 @@ export default class AddStoryPage {
 
         const storyData = {
             photo: this.#selectedFile,
-            description: description.value.trim()
+            description: description.value.trim(),
         };
 
         if (this.#currentLat && this.#currentLon) {
@@ -454,7 +553,7 @@ export default class AddStoryPage {
 
             if (response.error === false) {
                 closeLoading();
-                
+
                 this.#closeCamera();
 
                 await showSuccess(
@@ -470,7 +569,8 @@ export default class AddStoryPage {
             console.error('Error posting story:', error);
             closeLoading();
 
-            let errorMessage = 'Terjadi kesalahan saat memposting cerita. Silakan coba lagi.';
+            let errorMessage =
+                'Terjadi kesalahan saat memposting cerita. Silakan coba lagi.';
 
             if (error.message) {
                 errorMessage = error.message;

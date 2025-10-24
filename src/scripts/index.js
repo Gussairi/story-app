@@ -19,5 +19,5 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (e.key === 'token' || e.key === null) {
             await app.renderPage();
         }
-    })
+    });
 });

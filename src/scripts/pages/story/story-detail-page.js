@@ -1,6 +1,6 @@
-import API from "../../data/api";
-import { showFormattedDate } from "../../utils/helper";
-import { parseActivePathname } from "../../routes/url-parser";
+import API from '../../data/api';
+import { showFormattedDate } from '../../utils/helper';
+import { parseActivePathname } from '../../routes/url-parser';
 
 export default class StoryDetailPage {
     #map = null;
@@ -36,12 +36,13 @@ export default class StoryDetailPage {
         const container = document.getElementById('storyDetailContainer');
 
         if (!token) {
-        window.location.hash = '#/login';
-        return;
+            window.location.hash = '#/login';
+            return;
         }
 
         if (!id) {
-            container.innerHTML = '<p class="error-message">ID cerita tidak valid.</p>';
+            container.innerHTML =
+                '<p class="error-message">ID cerita tidak valid.</p>';
             return;
         }
 
@@ -50,7 +51,7 @@ export default class StoryDetailPage {
 
             if (response.error === false && response.story) {
                 const story = response.story;
-                
+
                 container.innerHTML = `
                     <article class="story-detail">
                         <div class="story-detail-image-wrapper">
@@ -60,13 +61,17 @@ export default class StoryDetailPage {
                             <h2 class="story-detail-name">${story.name}</h2>
                             <p class="story-detail-date">${showFormattedDate(story.createdAt, 'id-ID')}</p>
                             <p class="story-detail-description">${story.description.replace(/\n/g, '<br>')}</p>
-                            ${story.lat && story.lon ? `
+                            ${
+                                story.lat && story.lon
+                                    ? `
                                 <div class="story-location">
                                     <h3>Lokasi</h3>
                                     <div id="map" class="map-container"></div>
                                     <p class="coordinates">Koordinat: ${story.lat}, ${story.lon}</p>
                                 </div>
-                            ` : '<p class="no-location">Cerita ini tidak memiliki informasi lokasi.</p>'}
+                            `
+                                    : '<p class="no-location">Cerita ini tidak memiliki informasi lokasi.</p>'
+                            }
                         </div>
                     </article>
                 `;
@@ -94,7 +99,7 @@ export default class StoryDetailPage {
             return;
         }
 
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
 
         const mapContainer = document.getElementById('map');
         if (!mapContainer) return;
@@ -103,8 +108,9 @@ export default class StoryDetailPage {
             this.#map = L.map('map').setView([lat, lon], 13);
 
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-                maxZoom: 19
+                attribution:
+                    '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                maxZoom: 19,
             }).addTo(this.#map);
 
             this.#marker = L.marker([lat, lon]).addTo(this.#map);
@@ -112,7 +118,7 @@ export default class StoryDetailPage {
 
             setTimeout(() => {
                 if (this.#map) {
-                this.#map.invalidateSize();
+                    this.#map.invalidateSize();
                 }
             }, 200);
         } catch (error) {

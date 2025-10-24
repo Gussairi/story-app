@@ -40,7 +40,10 @@ export const transitionWithName = async (updateCallback, transitionName) => {
     }
 };
 
-export const transitionWithDirection = async (updateCallback, direction = 'forward') => {
+export const transitionWithDirection = async (
+    updateCallback,
+    direction = 'forward'
+) => {
     if (!supportsViewTransitions()) {
         await updateCallback();
         return;
@@ -63,7 +66,7 @@ export const transitionWithDirection = async (updateCallback, direction = 'forwa
 
 export const preloadImages = (imageUrls) => {
     return Promise.all(
-        imageUrls.map(url => {
+        imageUrls.map((url) => {
             return new Promise((resolve, reject) => {
                 const img = new Image();
                 img.onload = () => resolve(url);
