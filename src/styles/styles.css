@@ -11,6 +11,9 @@ body {
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
 }
 
 .container {
@@ -178,7 +181,9 @@ header {
 .main-content {
     padding-block: 32px;
     min-height: calc(100vh - 130px);
+    flex: 1;
 }
+
 .home-header {
     display: flex;
     justify-content: space-between;
@@ -1296,6 +1301,20 @@ select:focus-visible {
     .story-card:hover .story-image {
         transform: scale(1.05);
     }
+
+    .footer-content {
+        flex-direction: column;
+        text-align: center;
+        gap: 24px;
+    }
+
+    .footer-brand {
+        text-align: center;
+    }
+
+    .footer-container {
+        padding-block: 32px;
+    }
 }
 @media screen and (max-width: 375px) {
     :root {
@@ -1474,7 +1493,24 @@ select:focus-visible {
     .error-page p {
         font-size: 1rem;
     }
+
+    .footer-container {
+        padding-block: 24px;
+    }
+
+    .footer-title {
+        font-size: 1.25rem;
+    }
+
+    .footer-tagline {
+        font-size: 0.8rem;
+    }
+
+    .footer-copyright {
+        font-size: 0.75rem;
+    }
 }
+
 @media screen and (min-width: 1024px) {
     .navigation-drawer {
         min-height: auto;
@@ -2724,4 +2760,55 @@ html {
         box-shadow: none;
         border: 1px solid #ddd;
     }
+}
+
+.footer {
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    color: #ffffff;
+    margin-top: auto;
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.footer-container {
+    padding-block: 48px;
+}
+
+.footer-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 32px;
+    flex-wrap: wrap;
+    margin-bottom: 32px;
+}
+
+.footer-brand {
+    flex: 1;
+    min-width: 200px;
+}
+
+.footer-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+    color: #ffffff;
+    letter-spacing: -0.5px;
+}
+
+.footer-tagline {
+    font-size: 0.875rem;
+    color: rgba(255, 255, 255, 0.85);
+    margin: 0;
+}
+
+.footer-bottom {
+    padding-top: 24px;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    text-align: center;
+}
+
+.footer-copyright {
+    font-size: 0.875rem;
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0;
 }
