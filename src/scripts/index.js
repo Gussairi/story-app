@@ -2,6 +2,7 @@ import '../styles/styles.css';
 import '../styles/transitions.css';
 
 import App from './pages/app.js';
+import { registerServiceWorker } from './utils/index.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     const app = new App({
@@ -10,6 +11,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         navigationDrawer: document.querySelector('#navigation-drawer'),
     });
     await app.renderPage();
+    await registerServiceWorker();
 
     window.addEventListener('hashchange', async () => {
         await app.renderPage();
