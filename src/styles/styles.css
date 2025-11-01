@@ -1166,6 +1166,71 @@ select:focus-visible {
     z-index: 1;
 }
 
+.nav-button {
+    width: 100%;
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #475569;
+    text-decoration: none;
+    border: none;
+    background: none;
+    border-radius: 8px;
+    transition: all 200ms ease;
+    font-weight: 500;
+    font-size: 0.95rem;
+    cursor: pointer;
+    text-align: left;
+    position: relative;
+    overflow: hidden;
+}
+
+.nav-button::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 4px;
+    background: linear-gradient(135deg, #6366f1 0%, #14b8a6 100%);
+    transform: scaleY(0);
+    transition: transform 200ms ease;
+}
+
+.nav-button:hover {
+    background: linear-gradient(
+        90deg,
+        rgba(99, 102, 241, 0.1) 0%,
+        transparent 100%
+    );
+    color: #6366f1;
+    padding-left: calc(24px + 4px);
+}
+
+.nav-button:hover::before {
+    transform: scaleY(1);
+}
+
+.nav-button:focus-visible {
+    background: linear-gradient(90deg, rgba(99, 102, 241, 0.15) 0%, transparent 100%);
+    color: #6366f1;
+    outline: 2px solid #6366f1;
+    outline-offset: -2px;
+}
+
+.notification-icon {
+    font-size: 1.25rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.notification-text {
+    flex: 1;
+}
+
 @media screen and (max-width: 768px) {
     :root {
         --spacing-xl: 24px;
@@ -2701,6 +2766,33 @@ html {
 
     .pagination-container {
         gap: 16px;
+    }
+
+    .nav-list li .nav-button {
+        display: inline-flex;
+        padding: 8px 24px;
+        color: #ffffff;
+        background-color: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        width: auto;
+    }
+
+    .nav-list li .nav-button::before {
+        display: none;
+    }
+
+    .nav-list li .nav-button:hover {
+        padding-left: 24px;
+        background-color: rgba(255, 255, 255, 0.2);
+        color: #ffffff;
+    }
+
+    .notification-text {
+        display: none;
+    }
+
+    .notification-icon {
+        font-size: 1.5rem;
     }
 }
 

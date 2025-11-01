@@ -2,7 +2,7 @@ import '../styles/styles.css';
 import '../styles/transitions.css';
 
 import App from './pages/app.js';
-import { registerServiceWorker } from './utils/index.js';
+import { registerServiceWorker, requestNotificationPermission } from './utils/index.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     const app = new App({
@@ -12,6 +12,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
     await app.renderPage();
     await registerServiceWorker();
+    
+    // Request notification permission setelah service worker ready
+    await requestNotificationPermission();
 
     window.addEventListener('hashchange', async () => {
         await app.renderPage();

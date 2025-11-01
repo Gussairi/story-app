@@ -1,7 +1,12 @@
 import routes from '../routes/routes';
 import { getActiveRoute, parseActivePathname } from '../routes/url-parser';
-import { showConfirm, showSuccess } from '../utils/swal-helper';
+import { showConfirm, showSuccess, showError } from '../utils/swal-helper';
 import { transitionHelper, transitionWithName, transitionWithDirection } from '../utils/transition-helper';
+import { 
+    checkSubscriptionStatus, 
+    subscribeToPushNotification, 
+    unsubscribeFromPushNotification 
+} from '../utils/index';
 
 class App {
   #content = null;
@@ -9,6 +14,7 @@ class App {
   #navigationDrawer = null;
   #previousRoute = '/';
   #navigationHistory = [];
+  #notificationToggle = null;
 
   constructor({ navigationDrawer, drawerButton, content }) {
     this.#content = content;
@@ -79,16 +85,34 @@ class App {
     });
   }
 
-  #updateNavigation() {
+  async #updateNavigation() {
     const token = localStorage.getItem('token');
     const navList = document.getElementById('nav-list');
     
     if (!navList) return;
 
     if (token) {
+      // Cek status subscription
+      const subscriptionStatus = await checkSubscriptionStatus();
+      const isSubscribed = subscriptionStatus.subscribed;
+      const notificationIcon = isSubscribed ? '🔔' : '🔕';
+      const notificationText = isSubscribed ? 'Matikan Notifikasi' : 'Aktifkan Notifikasi';
+
       navList.innerHTML = `
         <li><a href="#/">Beranda</a></li>
         <li><a href="#/add-story">Tambah Cerita</a></li>
+        <li>
+          <button 
+            type="button" 
+            id="nav-notification-toggle" 
+            class="nav-button"
+            title="${notificationText}"
+            aria-label="${notificationText}"
+          >
+            <span class="notification-icon">${notificationIcon}</span>
+            <span class="notification-text">${notificationText}</span>
+          </button>
+        </li>
         <li><a href="javascript:void(0)" id="nav-logout">Logout</a></li>
       `;
 
@@ -97,6 +121,14 @@ class App {
         logoutLink.addEventListener('click', (e) => {
           e.preventDefault();
           this.#handleLogout();
+        });
+      }
+
+      const notificationToggle = document.getElementById('nav-notification-toggle');
+      if (notificationToggle) {
+        notificationToggle.addEventListener('click', async (e) => {
+          e.preventDefault();
+          await this.#handleNotificationToggle();
         });
       }
     } else {
@@ -109,13 +141,83 @@ class App {
     }
   }
 
+  async #handleNotificationToggle() {
+    const subscriptionStatus = await checkSubscriptionStatus();
+
+    if (!subscriptionStatus.supported) {
+      showError(
+        'Tidak Didukung',
+        'Browser Anda tidak mendukung push notification.'
+      );
+      return;
+    }
+
+    if (subscriptionStatus.subscribed) {
+      // Unsubscribe
+      const confirmed = await showConfirm(
+        'Matikan Notifikasi?',
+        'Anda tidak akan menerima notifikasi push lagi.',
+        'Ya, Matikan',
+        'Batal'
+      );
+
+      if (confirmed) {
+        const result = await unsubscribeFromPushNotification();
+        
+        if (result.success) {
+          await showSuccess(
+            'Notifikasi Dimatikan',
+            'Anda tidak akan menerima notifikasi push.',
+            1500
+          );
+          await this.#updateNavigation();
+        } else {
+          showError(
+            'Gagal Matikan Notifikasi',
+            result.error || 'Terjadi kesalahan.'
+          );
+        }
+      }
+    } else {
+      // Subscribe
+      const confirmed = await showConfirm(
+        'Aktifkan Notifikasi?',
+        'Anda akan menerima notifikasi tentang cerita baru dan update.',
+        'Ya, Aktifkan',
+        'Batal'
+      );
+
+      if (confirmed) {
+        const result = await subscribeToPushNotification();
+        
+        if (result.success) {
+          await showSuccess(
+            'Notifikasi Diaktifkan!',
+            'Anda akan menerima notifikasi push.',
+            1500
+          );
+          await this.#updateNavigation();
+        } else {
+          showError(
+            'Gagal Aktifkan Notifikasi',
+            result.error || 'Terjadi kesalahan. Pastikan Anda memberikan izin notifikasi.'
+          );
+        }
+      }
+    }
+
+    // Tutup drawer setelah aksi
+    this.#navigationDrawer.classList.remove('open');
+    this.#drawerButton.setAttribute('aria-expanded', 'false');
+  }
+
   async #handleLogout() {
     const isConfirmed = await showConfirm(
       'Konfirmasi Logout',
       'Apakah Anda yakin ingin logout?',
       'Ya, Logout',
       'Batal'
-    )
+    );
 
     if (isConfirmed) {
       localStorage.removeItem('token');
@@ -200,7 +302,7 @@ class App {
 
     const transitionType = this.#getTransitionType(currentRoute, this.#previousRoute);
 
-    this.#updateNavigation();
+    await this.#updateNavigation();
 
     if (transitionType === 'slide') {
       const direction = this.#getTransitionDirection(currentRoute, this.#previousRoute);

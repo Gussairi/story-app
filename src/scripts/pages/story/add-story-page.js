@@ -6,6 +6,7 @@ import {
     showError,
     showConfirm,
 } from '../../utils/swal-helper';
+import { sendPushNotification } from '../../utils/helper';
 
 export default class AddStoryPage {
     #previewImage = null;
@@ -555,6 +556,30 @@ export default class AddStoryPage {
                 closeLoading();
 
                 this.#closeCamera();
+
+                // Kirim push notification
+                const userName = localStorage.getItem('userName') || 'Guest';
+                const storyPreview = storyData.description.substring(0, 50) + (storyData.description.length > 50 ? '...' : '');
+                
+                console.log('Story posted successfully, response:', response);
+                
+                // Kirim notifikasi tanpa storyId atau URL detail
+                await sendPushNotification({
+                    title: '✅ Cerita Berhasil Diposting!',
+                    body: `${userName}: ${storyPreview}`,
+                    tag: 'story-added',
+                    icon: '/pwa-192x192.png',
+                    badge: '/pwa-64x64.png',
+                    image: this.#previewImage || undefined,
+                    data: {
+                        action: 'story-added',
+                        description: storyData.description,
+                        userName: userName,
+                        timestamp: new Date().toISOString()
+                    },
+                    requireInteraction: false,
+                    vibrate: [200, 100, 200, 100, 200]
+                });
 
                 await showSuccess(
                     'Cerita Berhasil Diposting!',

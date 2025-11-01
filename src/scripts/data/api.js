@@ -176,3 +176,54 @@ const API = {
 };
 
 export default API;
+
+
+// Subscribe Web Push Notification
+export async function subscribeWebPush(token, subscription) {
+    try {
+        const response = await fetch(`${CONFIG.BASE_URL}/notifications/subscribe`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                endpoint: subscription.endpoint,
+                keys: {
+                    p256dh: subscription.keys.p256dh,
+                    auth: subscription.keys.auth
+                }
+            }),
+        });
+        const responseJson = await response.json();
+        if (!response.ok) {
+            throw new Error(responseJson.message || 'Failed to subscribe web push');
+        }
+        return responseJson;
+    } catch (error) {
+        console.error('Error subscribe web push:', error);
+        throw error;
+    }
+}
+
+// Unsubscribe Web Push Notification
+export async function unsubscribeWebPush(token, endpoint) {
+    try {
+        const response = await fetch(`${CONFIG.BASE_URL}/notifications/subscribe`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ endpoint }),
+        });
+        const responseJson = await response.json();
+        if (!response.ok) {
+            throw new Error(responseJson.message || 'Failed to unsubscribe web push');
+        }
+        return responseJson;
+    } catch (error) {
+        console.error('Error unsubscribe web push:', error);
+        throw error;
+    }
+}
