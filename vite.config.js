@@ -152,26 +152,54 @@ export default defineConfig({
                 globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
                 runtimeCaching: [
                     {
-                        urlPattern: /^https:\/\/story-api\.dicoding\.dev\/v1\/.*/i,
+                        // Cache API JSON responses only (stories list, detail, etc)
+                        // EXCLUDE image paths
+                        urlPattern: ({ url }) => {
+                            return url.origin === 'https://story-api.dicoding.dev' &&
+                                   !url.pathname.startsWith('/images/') &&
+                                   !url.pathname.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i);
+                        },
                         handler: 'NetworkFirst',
                         options: {
-                            cacheName: 'story-api-cache',
+                            cacheName: 'story-api-json-cache',
                             expiration: {
-                                maxEntries: 100,
-                                maxAgeSeconds: 60 * 60 * 24 // 24 hours
+                                maxEntries: 50,
+                                maxAgeSeconds: 60 * 60 * 12 // 12 hours
                             },
                             cacheableResponse: {
                                 statuses: [0, 200]
-                            }
+                            },
+                            plugins: [
+                                {
+                                    // Extra filter: hanya cache JSON
+                                    cacheWillUpdate: async ({ response }) => {
+                                        const contentType = response.headers.get('content-type');
+                                        if (contentType && contentType.includes('application/json')) {
+                                            return response;
+                                        }
+                                        return null;
+                                    }
+                                }
+                            ]
                         }
                     },
                     {
+                        // NetworkOnly untuk foto dari story-api.dicoding.dev
+                        urlPattern: ({ url }) => {
+                            return url.origin === 'https://story-api.dicoding.dev' &&
+                                    (url.pathname.startsWith('/images/') ||
+                                    url.pathname.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i));
+                        },
+                        handler: 'NetworkOnly'
+                    },
+                    {
+                        // Cache CDN assets (libraries, fonts)
                         urlPattern: /^https:\/\/.*\.cloudflare\.com\/.*/i,
                         handler: 'CacheFirst',
                         options: {
                             cacheName: 'cloudflare-cdn-cache',
                             expiration: {
-                                maxEntries: 50,
+                                maxEntries: 30,
                                 maxAgeSeconds: 60 * 60 * 24 * 30 // 30 days
                             }
                         }

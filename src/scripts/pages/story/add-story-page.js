@@ -491,6 +491,14 @@ export default class AddStoryPage {
                 2000
             );
 
+            // Trigger check untuk sync jika ternyata sudah online
+            if (navigator.onLine) {
+                console.log('Device is online, triggering sync...');
+                setTimeout(() => {
+                    syncManager.syncPendingStories(true); // silent mode
+                }, 1000);
+            }
+
             window.location.hash = '#/';
         } catch (error) {
             console.error('Error saving offline:', error);

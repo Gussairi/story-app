@@ -6,6 +6,7 @@ import App from './pages/app.js';
 import { registerServiceWorker, requestNotificationPermission } from './utils/index.js';
 import syncManager from './utils/sync-manager.js';
 import syncStatusComponent from './components/sync-status-component.js';
+import { autoCleanupCache } from './utils/cache-manager.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     const app = new App({
@@ -22,6 +23,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Initialize sync status component
     await syncStatusComponent.init();
+
+    // Auto cleanup cache jika terlalu besar (async, tidak blocking)
+    autoCleanupCache().then(result => {
+        if (result.cleaned) {
+            console.log('✅ Cache auto-cleanup completed:', result);
+        }
+    }).catch(error => {
+        console.error('Error during cache auto-cleanup:', error);
+    });
 
     // Cek dan sync pending stories saat app load (jika online)
     if (navigator.onLine) {

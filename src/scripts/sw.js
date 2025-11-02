@@ -84,21 +84,65 @@ self.addEventListener('fetch', (event) => {
         if (request.method !== 'GET') {
             return;
         }
+
+        // Skip caching untuk image/photo URLs
+        // Cek apakah URL mengandung path ke foto
+        if (url.pathname.includes('/photos/') || 
+            url.pathname.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i) ||
+            request.headers.get('accept')?.includes('image/')) {
+            console.log('Skipping cache for image:', url.pathname);
+            // Langsung fetch tanpa cache
+            event.respondWith(fetch(request));
+            return;
+        }
         
+        // Cache hanya untuk data JSON (stories list, detail, dll)
         event.respondWith(
             fetch(request)
                 .then((response) => {
-                    const responseClone = response.clone();
-                    caches.open(API_CACHE_NAME).then((cache) => {
-                        cache.put(request, responseClone);
-                    });
+                    // Cek apakah response adalah JSON
+                    const contentType = response.headers.get('content-type');
+                    if (contentType && contentType.includes('application/json')) {
+                        const responseClone = response.clone();
+                        caches.open(API_CACHE_NAME).then((cache) => {
+                            cache.put(request, responseClone);
+                            console.log('Cached JSON response:', url.pathname);
+                        });
+                    }
                     return response;
                 })
                 .catch(() => {
+                    // Fallback ke cache jika offline
                     return caches.match(request);
                 })
         );
         return;
+    }
+
+    // Cache untuk assets statis (JS, CSS, fonts)
+    if (url.origin === self.location.origin) {
+        // Jangan cache HTML files (selalu fetch latest)
+        if (url.pathname.endsWith('.html') || url.pathname === '/') {
+            event.respondWith(
+                fetch(request).catch(() => caches.match(request))
+            );
+            return;
+        }
+
+        // Cache untuk JS, CSS, fonts
+        if (url.pathname.match(/\.(js|css|woff2|woff|ttf|eot)$/)) {
+            event.respondWith(
+                caches.match(request).then((response) => {
+                    return response || fetch(request).then((fetchResponse) => {
+                        return caches.open(CACHE_NAME).then((cache) => {
+                            cache.put(request, fetchResponse.clone());
+                            return fetchResponse;
+                        });
+                    });
+                })
+            );
+            return;
+        }
     }
 });
 
@@ -236,6 +280,7 @@ self.addEventListener('notificationclick', (event) => {
     }
 });
 
+// Background Sync API untuk sync otomatis saat online kembali
 self.addEventListener('sync', (event) => {
     console.log('Background Sync event triggered:', event.tag);
     
