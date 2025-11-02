@@ -39,6 +39,7 @@ self.addEventListener('message', (event) => {
     if (event.data && event.data.type === 'SHOW_NOTIFICATION') {
         const notificationData = event.data.payload;
         console.log('Notification payload:', notificationData);
+        console.log('Story ID in notification:', notificationData.data?.storyId);
         
         const options = {
             body: notificationData.body || 'Anda mendapat notifikasi baru!',
@@ -52,8 +53,20 @@ self.addEventListener('message', (event) => {
             timestamp: Date.now()
         };
         
-        // Show notification without action buttons (no 'Open' action)
-        console.log('Showing notification with options (no actions):', options);
+        // Add actions with open and close buttons
+        options.actions = [
+            {
+                action: 'open',
+                title: 'Open'
+            },
+            {
+                action: 'close',
+                title: 'Close'
+            }
+        ];
+        
+        console.log('Showing notification with options:', options);
+        
         self.registration.showNotification(
             notificationData.title || 'Story App',
             options
@@ -116,7 +129,9 @@ self.addEventListener('push', (event) => {
                 tag: pushData.tag || 'story-notification',
                 requireInteraction: pushData.requireInteraction || false,
                 data: {
-                    action: pushData.action || 'none',
+                    url: pushData.url || pushData.link || '/',
+                    storyId: pushData.storyId || null,
+                    action: pushData.action || 'open',
                     ...pushData.data
                 },
                 badge: pushData.badge,
@@ -130,8 +145,7 @@ self.addEventListener('push', (event) => {
             notificationData.body = event.data.text();
         }
     }
-    
-    // Show push notification without action buttons
+
     event.waitUntil(
         self.registration.showNotification(notificationData.title, {
             body: notificationData.body,
@@ -142,27 +156,82 @@ self.addEventListener('push', (event) => {
             icon: notificationData.icon,
             image: notificationData.image,
             vibrate: notificationData.vibrate,
-            timestamp: notificationData.timestamp
+            timestamp: notificationData.timestamp,
         })
     );
 });
 
-// Notification click event - simplified (no navigation to story detail)
+// Notification click event dengan navigasi dinamis
 self.addEventListener('notificationclick', (event) => {
-    console.log('Notification clicked (simplified):', event);
+    console.log('Notification clicked:', event);
+    console.log('Action:', event.action);
+    console.log('Notification data:', event.notification.data);
+    
     event.notification.close();
-
-    // Just focus an existing client or open app root. No story-detail navigation.
-    event.waitUntil(
-        clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-            for (const client of clientList) {
-                if ('focus' in client) {
-                    return client.focus();
+    
+    // Handle close action - just close notification
+    if (event.action === 'close') {
+        console.log('Close action clicked - notification closed');
+        return;
+    }
+    
+    // Tentukan URL tujuan (relative path)
+    let targetPath = '/';
+    
+    if (event.notification.data) {
+        const data = event.notification.data;
+        
+        // Jika ada storyId, navigasi ke detail story
+        if (data.storyId) {
+            targetPath = `/#/story/${data.storyId}`;
+            console.log('Navigating to story detail:', targetPath);
+        } 
+        // Jika ada URL custom
+        else if (data.url) {
+            targetPath = data.url;
+            console.log('Navigating to custom URL:', targetPath);
+        }
+    }
+    
+    // Handle open action atau click pada notifikasi body
+    if (event.action === 'open' || !event.action) {
+        console.log('Opening path:', targetPath);
+        
+        // Buka atau focus window
+        event.waitUntil(
+            clients.matchAll({ 
+                type: 'window', 
+                includeUncontrolled: true 
+            })
+            .then((clientList) => {
+                console.log('Found clients:', clientList.length);
+                
+                // Construct full URL
+                const fullUrl = new URL(targetPath, self.location.origin).href;
+                console.log('Full URL:', fullUrl);
+                
+                // Coba focus window yang sudah terbuka
+                for (let i = 0; i < clientList.length; i++) {
+                    const client = clientList[i];
+                    console.log('Checking client:', client.url);
+                    
+                    // Focus window yang sudah terbuka dan navigate ke target URL
+                    if ('focus' in client && 'navigate' in client) {
+                        console.log('Focusing existing window');
+                        return client.focus().then(() => {
+                            console.log('Navigating to:', fullUrl);
+                            return client.navigate(fullUrl);
+                        });
+                    }
                 }
-            }
-            if (clients.openWindow) {
-                return clients.openWindow('/#/');
-            }
-        })
-    );
+                
+                // Jika tidak ada window yang terbuka, buka window baru
+                console.log('Opening new window with URL:', fullUrl);
+                return clients.openWindow(fullUrl);
+            })
+            .catch((error) => {
+                console.error('Error handling notification click:', error);
+            })
+        );
+    }
 });

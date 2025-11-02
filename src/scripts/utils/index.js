@@ -38,7 +38,16 @@ export async function registerServiceWorker() {
     }
 
     try {
-        // Tunggu service worker ready
+        // Registrasi service worker jika belum terdaftar (penting untuk build produksi)
+        let existingRegistration = await navigator.serviceWorker.getRegistration();
+        if (!existingRegistration) {
+            // Catatan: Dengan Vite PWA (injectManifest), file hasil build berada di /sw.js
+            // Menggunakan path absolut agar bekerja di dev dan produksi
+            console.log('No existing SW registration found, registering /sw.js ...');
+            existingRegistration = await navigator.serviceWorker.register('/sw.js');
+        }
+
+        // Tunggu service worker siap
         const registration = await navigator.serviceWorker.ready;
         console.log('Service worker ready', registration);
 
