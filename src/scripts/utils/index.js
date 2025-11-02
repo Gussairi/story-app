@@ -33,27 +33,93 @@ export async function requestNotificationPermission() {
 
 export async function registerServiceWorker() {
     if (!isServiceWorkerAvailable()) {
-        console.log('Service Worker API unsupported');
+        console.warn('⚠️ Browser tidak mendukung Service Worker');
         return null;
     }
 
     try {
-        // Registrasi service worker jika belum terdaftar (penting untuk build produksi)
-        let existingRegistration = await navigator.serviceWorker.getRegistration();
-        if (!existingRegistration) {
-            // Catatan: Dengan Vite PWA (injectManifest), file hasil build berada di /sw.js
-            // Menggunakan path absolut agar bekerja di dev dan produksi
-            console.log('No existing SW registration found, registering /sw.js ...');
-            existingRegistration = await navigator.serviceWorker.register('/sw.js');
+        console.log('🔄 Memulai proses registrasi Service Worker...');
+        
+        // Cek apakah sudah ada service worker terdaftar
+        const existingRegistrations = await navigator.serviceWorker.getRegistrations();
+        console.log(`📋 Jumlah Service Worker terdaftar: ${existingRegistrations.length}`);
+        
+        if (existingRegistrations.length > 0) {
+            existingRegistrations.forEach((reg, index) => {
+                console.log(`SW ${index + 1}:`, {
+                    scope: reg.scope,
+                    active: !!reg.active,
+                    installing: !!reg.installing,
+                    waiting: !!reg.waiting
+                });
+            });
         }
 
-        // Tunggu service worker siap
-        const registration = await navigator.serviceWorker.ready;
-        console.log('Service worker ready', registration);
+        // Registrasi service worker
+        let registration = await navigator.serviceWorker.getRegistration();
+        
+        if (!registration) {
+            console.log('📝 Mendaftarkan Service Worker baru...');
+            registration = await navigator.serviceWorker.register('/sw.js', {
+                scope: '/',
+                updateViaCache: 'none' // Pastikan selalu mengambil versi terbaru
+            });
+            console.log('✅ Service Worker berhasil didaftarkan');
+        } else {
+            console.log('✅ Service Worker sudah terdaftar');
+            // Force update untuk memastikan mendapatkan versi terbaru
+            await registration.update();
+        }
 
-        return registration;
+        // Monitor status instalasi
+        if (registration.installing) {
+            console.log('⏳ Service Worker sedang installing...');
+            await trackInstallation(registration.installing);
+        } else if (registration.waiting) {
+            console.log('⏸️ Service Worker waiting (ada versi baru)');
+        } else if (registration.active) {
+            console.log('✅ Service Worker aktif dan berjalan');
+        }
+
+        // Tunggu service worker benar-benar siap
+        const readyRegistration = await navigator.serviceWorker.ready;
+        console.log('🎉 Service Worker ready:', {
+            scope: readyRegistration.scope,
+            active: !!readyRegistration.active,
+            updateFound: false
+        });
+
+        // Monitor update
+        registration.addEventListener('updatefound', () => {
+            const newWorker = registration.installing;
+            console.log('🆕 Update Service Worker ditemukan');
+            
+            trackInstallation(newWorker);
+        });
+
+        // Cek update secara periodik (setiap 30 detik)
+        setInterval(() => {
+            registration.update().catch(err => {
+                console.log('Error saat cek update SW:', err.message);
+            });
+        }, 30000);
+
+        return readyRegistration;
     } catch (error) {
-        console.log('Failed to setup service worker:', error);
+        console.error('❌ Gagal mendaftarkan Service Worker:', error);
+        console.error('Error details:', {
+            message: error.message,
+            name: error.name,
+            stack: error.stack
+        });
+        
+        // Retry setelah 5 detik jika gagal
+        console.log('🔄 Akan mencoba lagi dalam 5 detik...');
+        setTimeout(() => {
+            console.log('🔄 Mencoba registrasi ulang...');
+            registerServiceWorker();
+        }, 5000);
+        
         return null;
     }
 }
