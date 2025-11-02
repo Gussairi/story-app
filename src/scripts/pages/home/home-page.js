@@ -1,12 +1,15 @@
+// src/scripts/pages/home/home-page.js
 import API from '../../data/api';
 import { showFormattedDate } from '../../utils/helper';
 import { closeLoading, showError, showLoading } from '../../utils/swal-helper';
+import { saveToIndexedDB, getFromIndexedDB } from '../../utils/indexeddb-helper';
 
 export default class HomePage {
     #currentPage = 1;
     #pageSize = 10;
     #totalPages = 1;
     #maxPageReached = 1;
+    #sortOrder = 'newest'; // default: newest
 
     async render() {
         const token = localStorage.getItem('token');
@@ -37,16 +40,25 @@ export default class HomePage {
                 </div>
 
                 <div class="page-controls">
-                <div class="page-size-selector">
-                    <label for="pageSizeSelect">Tampilkan:</label>
-                    <select id="pageSizeSelect" class="page-size-select">
-                        <option value="5">5 cerita</option>
-                        <option value="10" selected>10 cerita</option>
-                        <option value="20">20 cerita</option>
-                        <option value="30">30 cerita</option>
-                    </select>
-                </div>
-                <div class="page-info" id="pageInfo"></div>
+                    <div class="page-size-selector">
+                        <label for="pageSizeSelect">Tampilkan:</label>
+                        <select id="pageSizeSelect" class="page-size-select">
+                            <option value="5">5 cerita</option>
+                            <option value="10" selected>10 cerita</option>
+                            <option value="20">20 cerita</option>
+                            <option value="30">30 cerita</option>
+                        </select>
+                    </div>
+                    
+                    <div class="sort-selector">
+                        <label for="sortSelect">Urutkan:</label>
+                        <select id="sortSelect" class="sort-select">
+                            <option value="newest" selected>Terbaru</option>
+                            <option value="oldest">Terlama</option>
+                        </select>
+                    </div>
+                    
+                    <div class="page-info" id="pageInfo"></div>
                 </div>
 
                 <div id="storiesContainer" class="stories-container"></div>
@@ -77,7 +89,16 @@ export default class HomePage {
 
         if (!token) return;
 
+        // Load preferensi sorting dari IndexedDB
+        await this.#loadSortPreference();
+
         const pageSizeSelect = document.getElementById('pageSizeSelect');
+        const sortSelect = document.getElementById('sortSelect');
+
+        // Set nilai sort select sesuai preferensi
+        if (sortSelect) {
+            sortSelect.value = this.#sortOrder;
+        }
 
         if (pageSizeSelect) {
             pageSizeSelect.addEventListener('change', (e) => {
@@ -89,8 +110,36 @@ export default class HomePage {
             });
         }
 
+        if (sortSelect) {
+            sortSelect.addEventListener('change', async (e) => {
+                this.#sortOrder = e.target.value;
+                
+                // Simpan preferensi ke IndexedDB
+                await saveToIndexedDB('sortOrder', this.#sortOrder);
+                
+                this.#currentPage = 1;
+                this.#maxPageReached = 1;
+                this.#totalPages = 1;
+                this.#loadStories();
+            });
+        }
+
         await this.#loadStories();
         this.#setupPaginationListeners();
+    }
+
+    async #loadSortPreference() {
+        try {
+            const savedSortOrder = await getFromIndexedDB('sortOrder');
+            if (savedSortOrder) {
+                this.#sortOrder = savedSortOrder;
+                console.log('Loaded sort preference:', this.#sortOrder);
+            }
+        } catch (error) {
+            console.error('Error loading sort preference:', error);
+            // Gunakan default jika error
+            this.#sortOrder = 'newest';
+        }
     }
 
     async #loadStories() {
@@ -109,7 +158,12 @@ export default class HomePage {
             });
 
             if (response.error === false && response.listStory) {
-                const storyCount = response.listStory.length;
+                let stories = response.listStory;
+                
+                // Sorting berdasarkan tanggal
+                stories = this.#sortStories(stories);
+
+                const storyCount = stories.length;
 
                 if (this.#currentPage > this.#maxPageReached) {
                     this.#maxPageReached = this.#currentPage;
@@ -124,7 +178,7 @@ export default class HomePage {
                     );
                 }
 
-                if (response.listStory.length === 0) {
+                if (stories.length === 0) {
                     if (this.#currentPage === 1) {
                         closeLoading();
                         storiesContainer.innerHTML =
@@ -140,9 +194,9 @@ export default class HomePage {
                 closeLoading();
 
                 const startIndex = (this.#currentPage - 1) * this.#pageSize + 1;
-                const endIndex = startIndex + response.listStory.length - 1;
+                const endIndex = startIndex + stories.length - 1;
 
-                storiesContainer.innerHTML = response.listStory
+                storiesContainer.innerHTML = stories
                     .map(
                         (story) => `
                             <article class="story-card" role="listitem" tabindex="0" data-id="${story.id}" aria-label="Story: ${this.#escapeHtml(story.name)}" >
@@ -184,6 +238,21 @@ export default class HomePage {
         }
     }
 
+    #sortStories(stories) {
+        return stories.sort((a, b) => {
+            const dateA = new Date(a.createdAt);
+            const dateB = new Date(b.createdAt);
+            
+            if (this.#sortOrder === 'newest') {
+                // Terbaru di atas (descending)
+                return dateB - dateA;
+            } else {
+                // Terlama di atas (ascending)
+                return dateA - dateB;
+            }
+        });
+    }
+
     #setupStoryCardListeners() {
         const storyCards = document.querySelectorAll('.story-card');
         
@@ -223,6 +292,8 @@ export default class HomePage {
         const pageInfo = document.getElementById('pageInfo');
         if (!pageInfo) return;
 
+        const sortText = this.#sortOrder === 'newest' ? 'Terbaru' : 'Terlama';
+
         if (totalOnPage === 0) {
             pageInfo.innerHTML =
                 '<span class="page-info-text">Tidak ada cerita</span>';
@@ -232,6 +303,8 @@ export default class HomePage {
                 Menampilkan ${startIndex}-${endIndex} cerita
                 <span class="page-separator">•</span>
                 Halaman ${this.#currentPage}
+                <span class="page-separator">•</span>
+                <span class="sort-info">${sortText}</span>
                 </span>
             `;
         }
