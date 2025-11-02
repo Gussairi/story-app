@@ -276,3 +276,38 @@ export async function sendTestNotification(data = {}) {
         return { success: false, error: error.message };
     }
 }
+
+export async function registerBackgroundSync() {
+    if (!('serviceWorker' in navigator) || !('sync' in ServiceWorkerRegistration.prototype)) {
+        console.log('Background Sync not supported');
+        return false;
+    }
+
+    try {
+        const registration = await navigator.serviceWorker.ready;
+        await registration.sync.register('sync-stories');
+        console.log('✅ Background Sync registered');
+        return true;
+    } catch (error) {
+        console.error('Failed to register background sync:', error);
+        return false;
+    }
+}
+
+/**
+ * Listen untuk background sync messages dari service worker
+ */
+export function setupBackgroundSyncListener(callback) {
+    if (!('serviceWorker' in navigator)) {
+        return;
+    }
+
+    navigator.serviceWorker.addEventListener('message', (event) => {
+        if (event.data && event.data.type === 'BACKGROUND_SYNC') {
+            console.log('Received background sync message:', event.data);
+            if (callback) {
+                callback(event.data);
+            }
+        }
+    });
+}

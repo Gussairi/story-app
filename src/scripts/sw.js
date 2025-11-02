@@ -235,3 +235,47 @@ self.addEventListener('notificationclick', (event) => {
         );
     }
 });
+
+self.addEventListener('sync', (event) => {
+    console.log('Background Sync event triggered:', event.tag);
+    
+    if (event.tag === 'sync-stories') {
+        event.waitUntil(syncPendingStories());
+    }
+});
+
+/**
+ * Background sync untuk pending stories
+ */
+async function syncPendingStories() {
+    console.log('🔄 Background sync: Syncing pending stories...');
+    
+    try {
+        // Kirim message ke clients untuk trigger sync
+        const clients = await self.clients.matchAll({ 
+            type: 'window',
+            includeUncontrolled: true 
+        });
+        
+        for (const client of clients) {
+            client.postMessage({
+                type: 'BACKGROUND_SYNC',
+                action: 'sync-stories'
+            });
+        }
+        
+        console.log('✅ Background sync message sent to clients');
+    } catch (error) {
+        console.error('❌ Background sync error:', error);
+        throw error;
+    }
+}
+
+// Optional: Periodic Background Sync (jika browser support)
+self.addEventListener('periodicsync', (event) => {
+    console.log('Periodic Sync event triggered:', event.tag);
+    
+    if (event.tag === 'sync-stories-periodic') {
+        event.waitUntil(syncPendingStories());
+    }
+});

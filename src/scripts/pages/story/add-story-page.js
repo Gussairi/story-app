@@ -1,3 +1,4 @@
+// src/scripts/pages/story/add-story-page.js
 import API from '../../data/api';
 import {
     showLoading,
@@ -6,6 +7,8 @@ import {
     showError,
     showConfirm,
 } from '../../utils/swal-helper';
+import { savePendingStory } from '../../utils/offline-sync-helper';
+import syncManager from '../../utils/sync-manager';
 
 export default class AddStoryPage {
     #previewImage = null;
@@ -21,12 +24,14 @@ export default class AddStoryPage {
         const token = localStorage.getItem('token');
         const userName = localStorage.getItem('userName');
         const isLoggedIn = !!token;
+        const isOnline = navigator.onLine;
 
         return `
             <section class="container">
                 <div class="add-story-header">
                     <h1>Tambah Cerita Baru</h1>
                     ${!isLoggedIn ? '<p class="guest-notice">Anda sedang membuat cerita sebagai guest</p>' : `<p class="user-notice">Halo, ${userName}! Ada cerita apa hari ini?</p>`}
+                    ${!isOnline ? '<p class="offline-notice">📴 Mode Offline - Cerita akan di-sync otomatis saat online</p>' : ''}
                 </div>
                 
                 <form id="addStoryForm" class="add-story-form">
@@ -109,7 +114,9 @@ export default class AddStoryPage {
 
                     <div class="form-actions">
                         <button type="button" id="btnCancel" class="btn-cancel">Batal</button>
-                        <button type="submit" id="btnSubmit" class="btn-submit">Posting Cerita</button>
+                        <button type="submit" id="btnSubmit" class="btn-submit">
+                            ${isOnline ? 'Posting Cerita' : '💾 Simpan Offline'}
+                        </button>
                     </div>
 
                     ${!isLoggedIn ? '<p class="login-prompt">Ingin menyimpan cerita Anda? <a href="#/login">Login di sini</a></p>' : ''}
@@ -141,6 +148,13 @@ export default class AddStoryPage {
         const btnChooseLocation = document.getElementById('btnChooseLocation');
         const mapContainer = document.getElementById('mapContainer');
         const btnConfirmLocation = document.getElementById('btnConfirmLocation');
+
+        // Update button text based on online status
+        this.#updateSubmitButton();
+        
+        // Listen to online/offline events
+        window.addEventListener('online', () => this.#updateSubmitButton());
+        window.addEventListener('offline', () => this.#updateSubmitButton());
 
         btnUploadFile.addEventListener('click', () => {
             this.#switchPhotoMode('upload', btnUploadFile, btnOpenCamera, cameraContainer, photoInput);
@@ -208,6 +222,14 @@ export default class AddStoryPage {
         });
 
         description.focus();
+    }
+
+    #updateSubmitButton() {
+        const btnSubmit = document.getElementById('btnSubmit');
+        if (btnSubmit) {
+            const isOnline = navigator.onLine;
+            btnSubmit.innerHTML = isOnline ? 'Posting Cerita' : '💾 Simpan Offline';
+        }
     }
 
     #switchPhotoMode(mode, btnUploadFile, btnOpenCamera, cameraContainer, photoInput) {
@@ -443,6 +465,44 @@ export default class AddStoryPage {
             storyData.lon = this.#currentLon;
         }
 
+        const isOnline = navigator.onLine;
+
+        if (!isOnline) {
+            // Mode offline - simpan ke IndexedDB
+            await this.#saveOffline(storyData);
+        } else {
+            // Mode online - langsung upload
+            await this.#saveOnline(storyData);
+        }
+    }
+
+    async #saveOffline(storyData) {
+        showLoading('Menyimpan Offline...', 'Cerita akan di-sync saat online');
+
+        try {
+            const id = await savePendingStory(storyData);
+            
+            closeLoading();
+            this.#closeCamera();
+
+            await showSuccess(
+                '💾 Tersimpan Offline!',
+                'Cerita akan otomatis di-sync saat koneksi kembali',
+                2000
+            );
+
+            window.location.hash = '#/';
+        } catch (error) {
+            console.error('Error saving offline:', error);
+            closeLoading();
+            showError(
+                'Gagal Menyimpan',
+                'Terjadi kesalahan saat menyimpan cerita offline'
+            );
+        }
+    }
+
+    async #saveOnline(storyData) {
         showLoading('Memposting Cerita...', 'Mohon tunggu sebentar');
 
         try {
@@ -459,15 +519,12 @@ export default class AddStoryPage {
                 closeLoading();
                 this.#closeCamera();
 
-                // Server akan mengirim push notification otomatis ke semua subscriber
-                // Tidak perlu memanggil sendPushNotification() dari client
-                console.log('Story posted successfully. Server will send push notification to all subscribers.');
-
                 await showSuccess(
                     'Cerita Berhasil Diposting!',
-                    'Cerita Anda telah ditambahkan. Push notification akan dikirim ke semua subscriber.',
+                    'Cerita Anda telah ditambahkan',
                     2000
                 );
+                
                 window.location.hash = '#/';
             } else {
                 throw new Error(response.message || 'Gagal memposting cerita');
@@ -476,13 +533,17 @@ export default class AddStoryPage {
             console.error('Error posting story:', error);
             closeLoading();
 
-            let errorMessage = 'Terjadi kesalahan saat memposting cerita. Silakan coba lagi.';
+            // Tawarkan untuk simpan offline
+            const saveOffline = await showConfirm(
+                'Gagal Upload',
+                'Tidak dapat mengirim cerita. Simpan offline untuk di-sync nanti?',
+                'Ya, Simpan Offline',
+                'Batal'
+            );
 
-            if (error.message) {
-                errorMessage = error.message;
+            if (saveOffline) {
+                await this.#saveOffline(storyData);
             }
-
-            showError('Gagal Memposting Cerita', errorMessage);
         }
     }
 }
