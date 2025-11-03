@@ -33,15 +33,15 @@ export async function requestNotificationPermission() {
 
 export async function registerServiceWorker() {
     if (!isServiceWorkerAvailable()) {
-        console.warn('⚠️ Browser tidak mendukung Service Worker');
+        console.warn('Browser tidak mendukung Service Worker');
         return null;
     }
 
     try {
-        console.log('🔄 Memulai proses registrasi Service Worker...');
+        console.log('Memulai proses registrasi Service Worker...');
         
         const existingRegistrations = await navigator.serviceWorker.getRegistrations();
-        console.log(`📋 Jumlah Service Worker terdaftar: ${existingRegistrations.length}`);
+        console.log(`Jumlah Service Worker terdaftar: ${existingRegistrations.length}`);
         
         if (existingRegistrations.length > 0) {
             existingRegistrations.forEach((reg, index) => {
@@ -57,28 +57,28 @@ export async function registerServiceWorker() {
         let registration = await navigator.serviceWorker.getRegistration();
         
         if (!registration) {
-            console.log('📝 Mendaftarkan Service Worker baru...');
+            console.log('Mendaftarkan Service Worker baru...');
             registration = await navigator.serviceWorker.register('/sw.js', {
                 scope: '/',
                 updateViaCache: 'none'
             });
-            console.log('✅ Service Worker berhasil didaftarkan');
+            console.log('Service Worker berhasil didaftarkan');
         } else {
-            console.log('✅ Service Worker sudah terdaftar');
+            console.log('Service Worker sudah terdaftar');
             await registration.update();
         }
 
         if (registration.installing) {
-            console.log('⏳ Service Worker sedang installing...');
+            console.log('Service Worker sedang installing...');
             await trackInstallation(registration.installing);
         } else if (registration.waiting) {
-            console.log('⏸️ Service Worker waiting (ada versi baru)');
+            console.log('Service Worker waiting (ada versi baru)');
         } else if (registration.active) {
-            console.log('✅ Service Worker aktif dan berjalan');
+            console.log('Service Worker aktif dan berjalan');
         }
 
         const readyRegistration = await navigator.serviceWorker.ready;
-        console.log('🎉 Service Worker ready:', {
+        console.log('Service Worker ready:', {
             scope: readyRegistration.scope,
             active: !!readyRegistration.active,
             updateFound: false
@@ -86,7 +86,7 @@ export async function registerServiceWorker() {
 
         registration.addEventListener('updatefound', () => {
             const newWorker = registration.installing;
-            console.log('🆕 Update Service Worker ditemukan');
+            console.log('Update Service Worker ditemukan');
             
             trackInstallation(newWorker);
         });
@@ -99,16 +99,16 @@ export async function registerServiceWorker() {
 
         return readyRegistration;
     } catch (error) {
-        console.error('❌ Gagal mendaftarkan Service Worker:', error);
+        console.error('Gagal mendaftarkan Service Worker:', error);
         console.error('Error details:', {
             message: error.message,
             name: error.name,
             stack: error.stack
         });
         
-        console.log('🔄 Akan mencoba lagi dalam 5 detik...');
+        console.log('Akan mencoba lagi dalam 5 detik...');
         setTimeout(() => {
-            console.log('🔄 Mencoba registrasi ulang...');
+            console.log('Mencoba registrasi ulang...');
             registerServiceWorker();
         }, 5000);
         
@@ -272,7 +272,7 @@ export async function registerBackgroundSync() {
     try {
         const registration = await navigator.serviceWorker.ready;
         await registration.sync.register('sync-stories');
-        console.log('✅ Background Sync registered');
+        console.log('Background Sync registered');
         return true;
     } catch (error) {
         console.error('Failed to register background sync:', error);

@@ -261,7 +261,7 @@ self.addEventListener('sync', (event) => {
 });
 
 async function syncPendingStories() {
-    console.log('🔄 Background sync: Syncing pending stories...');
+    console.log('Background sync: Syncing pending stories...');
     
     try {
         const clients = await self.clients.matchAll({ 
@@ -276,9 +276,9 @@ async function syncPendingStories() {
             });
         }
         
-        console.log('✅ Background sync message sent to clients');
+        console.log('Background sync message sent to clients');
     } catch (error) {
-        console.error('❌ Background sync error:', error);
+        console.error('Background sync error:', error);
         throw error;
     }
 }

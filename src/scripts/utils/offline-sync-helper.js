@@ -12,6 +12,7 @@ function openSyncDB() {
         };
 
         request.onsuccess = () => {
+            console.log('Sync DB opened successfully');
             resolve(request.result);
         };
 
@@ -32,10 +33,21 @@ function openSyncDB() {
 }
 
 export async function savePendingStory(storyData) {
+    console.log('\nSaving pending story to IndexedDB...');
+    
     try {
         const db = await openSyncDB();
         const transaction = db.transaction([PENDING_STORIES_STORE], 'readwrite');
         const store = transaction.objectStore(PENDING_STORIES_STORE);
+
+        // Validate story data
+        if (!storyData.photo) {
+            throw new Error('Photo is required');
+        }
+
+        if (!storyData.description || storyData.description.trim() === '') {
+            throw new Error('Description is required');
+        }
 
         const pendingStory = {
             description: storyData.description,
@@ -51,12 +63,19 @@ export async function savePendingStory(storyData) {
             error: null
         };
 
+        console.log('  Story data:', {
+            description: pendingStory.description.substring(0, 50) + '...',
+            photoName: pendingStory.photoName,
+            photoSize: pendingStory.photoSize,
+            hasLocation: !!(pendingStory.lat && pendingStory.lon)
+        });
+
         const request = store.add(pendingStory);
 
         return new Promise((resolve, reject) => {
             request.onsuccess = () => {
                 const id = request.result;
-                console.log(`Pending story saved with ID: ${id}`, pendingStory);
+                console.log(`Pending story saved with ID: ${id}`);
                 resolve(id);
             };
 
@@ -67,6 +86,12 @@ export async function savePendingStory(storyData) {
 
             transaction.oncomplete = () => {
                 db.close();
+                console.log('  Database connection closed');
+            };
+
+            transaction.onerror = () => {
+                console.error('Transaction error:', transaction.error);
+                reject(transaction.error);
             };
         });
     } catch (error) {
@@ -76,6 +101,8 @@ export async function savePendingStory(storyData) {
 }
 
 export async function getPendingStories() {
+    console.log('\n📂 Fetching pending stories from IndexedDB...');
+    
     try {
         const db = await openSyncDB();
         const transaction = db.transaction([PENDING_STORIES_STORE], 'readonly');
@@ -86,6 +113,14 @@ export async function getPendingStories() {
             request.onsuccess = () => {
                 const stories = request.result || [];
                 console.log(`Retrieved ${stories.length} pending stories`);
+                
+                if (stories.length > 0) {
+                    console.log('  Stories overview:');
+                    stories.forEach((story, index) => {
+                        console.log(`    ${index + 1}. ID: ${story.id}, Status: ${story.status}, Retries: ${story.retryCount}`);
+                    });
+                }
+                
                 resolve(stories);
             };
 
@@ -97,6 +132,11 @@ export async function getPendingStories() {
             transaction.oncomplete = () => {
                 db.close();
             };
+
+            transaction.onerror = () => {
+                console.error('Transaction error:', transaction.error);
+                reject(transaction.error);
+            };
         });
     } catch (error) {
         console.error('Error in getPendingStories:', error);
@@ -105,6 +145,8 @@ export async function getPendingStories() {
 }
 
 export async function updatePendingStoryStatus(id, status, error = null) {
+    console.log(`\nUpdating story ${id} status to: ${status}`);
+    
     try {
         const db = await openSyncDB();
         const transaction = db.transaction([PENDING_STORIES_STORE], 'readwrite');
@@ -115,44 +157,60 @@ export async function updatePendingStoryStatus(id, status, error = null) {
         return new Promise((resolve, reject) => {
             getRequest.onsuccess = () => {
                 const story = getRequest.result;
+                
                 if (!story) {
-                    reject(new Error('Story not found'));
+                    const errorMsg = `Story with ID ${id} not found`;
+                    console.error(`${errorMsg}`);
+                    reject(new Error(errorMsg));
                     return;
                 }
 
+                console.log(`  Current status: ${story.status}, New status: ${status}`);
+
                 story.status = status;
                 story.error = error;
+                
                 if (status === 'failed') {
                     story.retryCount = (story.retryCount || 0) + 1;
+                    console.log(`Retry count increased to: ${story.retryCount}`);
                 }
 
                 const updateRequest = store.put(story);
                 
                 updateRequest.onsuccess = () => {
-                    console.log(`Story ${id} status updated to: ${status}`);
+                    console.log(`Story ${id} status updated successfully`);
                     resolve();
                 };
 
                 updateRequest.onerror = () => {
+                    console.error(`Error updating story ${id}:`, updateRequest.error);
                     reject(updateRequest.error);
                 };
             };
 
             getRequest.onerror = () => {
+                console.error(`Error getting story ${id}:`, getRequest.error);
                 reject(getRequest.error);
             };
 
             transaction.oncomplete = () => {
                 db.close();
             };
+
+            transaction.onerror = () => {
+                console.error('Transaction error:', transaction.error);
+                reject(transaction.error);
+            };
         });
     } catch (error) {
-        console.error('Error updating story status:', error);
+        console.error('Error in updatePendingStoryStatus:', error);
         throw error;
     }
 }
 
 export async function deletePendingStory(id) {
+    console.log(`\nDeleting pending story ${id} from IndexedDB...`);
+    
     try {
         const db = await openSyncDB();
         const transaction = db.transaction([PENDING_STORIES_STORE], 'readwrite');
@@ -161,17 +219,23 @@ export async function deletePendingStory(id) {
 
         return new Promise((resolve, reject) => {
             request.onsuccess = () => {
-                console.log(`Pending story ${id} deleted`);
+                console.log(`Pending story ${id} deleted successfully`);
                 resolve();
             };
 
             request.onerror = () => {
-                console.error('Error deleting pending story:', request.error);
+                console.error(`Error deleting pending story ${id}:`, request.error);
                 reject(request.error);
             };
 
             transaction.oncomplete = () => {
                 db.close();
+                console.log('  Database connection closed');
+            };
+
+            transaction.onerror = () => {
+                console.error('Transaction error:', transaction.error);
+                reject(transaction.error);
             };
         });
     } catch (error) {
@@ -189,10 +253,13 @@ export async function getPendingStoriesCount() {
 
         return new Promise((resolve, reject) => {
             request.onsuccess = () => {
-                resolve(request.result);
+                const count = request.result;
+                console.log(`Pending stories count: ${count}`);
+                resolve(count);
             };
 
             request.onerror = () => {
+                console.error('Error counting pending stories:', request.error);
                 reject(request.error);
             };
 
@@ -207,6 +274,8 @@ export async function getPendingStoriesCount() {
 }
 
 export async function clearPendingStories() {
+    console.log('\nClearing all pending stories from IndexedDB...');
+    
     try {
         const db = await openSyncDB();
         const transaction = db.transaction([PENDING_STORIES_STORE], 'readwrite');
@@ -226,6 +295,11 @@ export async function clearPendingStories() {
 
             transaction.oncomplete = () => {
                 db.close();
+            };
+
+            transaction.onerror = () => {
+                console.error('Transaction error:', transaction.error);
+                reject(transaction.error);
             };
         });
     } catch (error) {

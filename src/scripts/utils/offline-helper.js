@@ -8,7 +8,6 @@ export function setupOfflineIndicator() {
     offlineIndicator.className = 'offline-indicator hidden';
     offlineIndicator.innerHTML = `
         <div class="offline-content">
-            <span class="offline-icon">📡</span>
             <span class="offline-text">Anda sedang offline. Beberapa fitur mungkin terbatas.</span>
         </div>
     `;

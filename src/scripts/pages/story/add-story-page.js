@@ -30,7 +30,7 @@ export default class AddStoryPage {
                 <div class="add-story-header">
                     <h1>Tambah Cerita Baru</h1>
                     ${!isLoggedIn ? '<p class="guest-notice">Anda sedang membuat cerita sebagai guest</p>' : `<p class="user-notice">Halo, ${userName}! Ada cerita apa hari ini?</p>`}
-                    ${!isOnline ? '<p class="offline-notice">📴 Mode Offline - Cerita akan di-sync otomatis saat online</p>' : ''}
+                    ${!isOnline ? '<p class="offline-notice">Mode Offline - Cerita akan di-sync otomatis saat online</p>' : ''}
                 </div>
                 
                 <form id="addStoryForm" class="add-story-form">
@@ -114,7 +114,7 @@ export default class AddStoryPage {
                     <div class="form-actions">
                         <button type="button" id="btnCancel" class="btn-cancel">Batal</button>
                         <button type="submit" id="btnSubmit" class="btn-submit">
-                            ${isOnline ? 'Posting Cerita' : '💾 Simpan Offline'}
+                            ${isOnline ? 'Posting Cerita' : 'Simpan Offline'}
                         </button>
                     </div>
 
@@ -225,7 +225,7 @@ export default class AddStoryPage {
         const btnSubmit = document.getElementById('btnSubmit');
         if (btnSubmit) {
             const isOnline = navigator.onLine;
-            btnSubmit.innerHTML = isOnline ? 'Posting Cerita' : '💾 Simpan Offline';
+            btnSubmit.innerHTML = isOnline ? 'Posting Cerita' : 'Simpan Offline';
         }
     }
 
@@ -481,7 +481,7 @@ export default class AddStoryPage {
             this.#closeCamera();
 
             await showSuccess(
-                '💾 Tersimpan Offline!',
+                'Tersimpan Offline!',
                 'Cerita akan otomatis di-sync saat koneksi kembali',
                 2000
             );

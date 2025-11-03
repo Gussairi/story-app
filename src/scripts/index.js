@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     autoCleanupCache().then(result => {
         if (result.cleaned) {
-            console.log('✅ Cache auto-cleanup completed:', result);
+            console.log('Cache auto-cleanup completed:', result);
         }
     }).catch(error => {
         console.error('Error during cache auto-cleanup:', error);
@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (navigator.onLine) {
         const hasPending = await syncManager.hasPendingStories();
         if (hasPending) {
-            console.log('🔄 Found pending stories, starting auto-sync...')
+            console.log('Found pending stories, starting auto-sync...')
             setTimeout(() => {
                 syncManager.syncPendingStories(true);
             }, 2000);
