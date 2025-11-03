@@ -1,4 +1,3 @@
-// src/scripts/pages/story/add-story-page.js
 import API from '../../data/api';
 import {
     showLoading,
@@ -149,10 +148,8 @@ export default class AddStoryPage {
         const mapContainer = document.getElementById('mapContainer');
         const btnConfirmLocation = document.getElementById('btnConfirmLocation');
 
-        // Update button text based on online status
         this.#updateSubmitButton();
         
-        // Listen to online/offline events
         window.addEventListener('online', () => this.#updateSubmitButton());
         window.addEventListener('offline', () => this.#updateSubmitButton());
 
@@ -468,10 +465,8 @@ export default class AddStoryPage {
         const isOnline = navigator.onLine;
 
         if (!isOnline) {
-            // Mode offline - simpan ke IndexedDB
             await this.#saveOffline(storyData);
         } else {
-            // Mode online - langsung upload
             await this.#saveOnline(storyData);
         }
     }
@@ -491,11 +486,10 @@ export default class AddStoryPage {
                 2000
             );
 
-            // Trigger check untuk sync jika ternyata sudah online
             if (navigator.onLine) {
                 console.log('Device is online, triggering sync...');
                 setTimeout(() => {
-                    syncManager.syncPendingStories(true); // silent mode
+                    syncManager.syncPendingStories(true);
                 }, 1000);
             }
 
@@ -541,7 +535,6 @@ export default class AddStoryPage {
             console.error('Error posting story:', error);
             closeLoading();
 
-            // Tawarkan untuk simpan offline
             const saveOffline = await showConfirm(
                 'Gagal Upload',
                 'Tidak dapat mengirim cerita. Simpan offline untuk di-sync nanti?',

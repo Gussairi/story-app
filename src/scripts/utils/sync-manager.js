@@ -1,5 +1,3 @@
-// src/scripts/utils/sync-manager.js
-
 import API from '../data/api';
 import {
     getPendingStories,
@@ -19,9 +17,6 @@ class SyncManager {
         this.#startPeriodicSync();
     }
 
-    /**
-     * Setup listener untuk online/offline event
-     */
     #setupOnlineListener() {
         window.addEventListener('online', async () => {
             console.log('🌐 Connection restored - Starting sync...');
@@ -33,25 +28,18 @@ class SyncManager {
         });
     }
 
-    /**
-     * Mulai periodic sync setiap 30 detik (jika online)
-     */
     #startPeriodicSync() {
-        // Cek setiap 30 detik
         this.#syncInterval = setInterval(async () => {
             if (navigator.onLine && !this.#isSyncing) {
                 const count = await getPendingStoriesCount();
                 if (count > 0) {
                     console.log(`📤 Auto-sync: ${count} pending stories found`);
-                    await this.syncPendingStories(true); // silent mode
+                    await this.syncPendingStories(true);
                 }
             }
-        }, 30000); // 30 seconds
+        }, 30000);
     }
 
-    /**
-     * Stop periodic sync
-     */
     stopPeriodicSync() {
         if (this.#syncInterval) {
             clearInterval(this.#syncInterval);
@@ -59,10 +47,6 @@ class SyncManager {
         }
     }
 
-    /**
-     * Subscribe ke sync events
-     * @param {Function} callback - Callback function(event)
-     */
     subscribe(callback) {
         this.#listeners.push(callback);
         return () => {
@@ -70,10 +54,6 @@ class SyncManager {
         };
     }
 
-    /**
-     * Emit event ke semua listeners
-     * @param {Object} event - Event data
-     */
     #emit(event) {
         this.#listeners.forEach(callback => {
             try {
@@ -84,11 +64,6 @@ class SyncManager {
         });
     }
 
-    /**
-     * Sync semua pending stories
-     * @param {boolean} silent - Jika true, tidak tampilkan notifikasi
-     * @returns {Promise<Object>} - Result {success: number, failed: number}
-     */
     async syncPendingStories(silent = false) {
         if (this.#isSyncing) {
             console.log('Sync already in progress');
@@ -122,7 +97,6 @@ class SyncManager {
 
             console.log(`📤 Syncing ${pendingStories.length} pending stories...`);
 
-            // Filter hanya yang pending atau failed dengan retry < 3
             const storiesToSync = pendingStories.filter(
                 story => story.status === 'pending' || 
                         (story.status === 'failed' && story.retryCount < 3)
@@ -158,7 +132,6 @@ class SyncManager {
                 failed: failedCount 
             });
 
-            // Tampilkan notifikasi hasil sync
             if (!silent && (successCount > 0 || failedCount > 0)) {
                 if (failedCount === 0) {
                     showSuccess(
@@ -197,18 +170,12 @@ class SyncManager {
         return { success: successCount, failed: failedCount };
     }
 
-    /**
-     * Sync single story
-     * @param {Object} story - Story data dari IndexedDB
-     */
     async #syncSingleStory(story) {
-        // Update status ke syncing
         await updatePendingStoryStatus(story.id, 'syncing');
 
         try {
             const token = localStorage.getItem('token');
             
-            // Siapkan data untuk API
             const storyData = {
                 photo: story.photoBlob,
                 description: story.description
@@ -221,7 +188,6 @@ class SyncManager {
                 storyData.lon = story.lon;
             }
 
-            // Upload ke server
             let response;
             if (token) {
                 response = await API.addStory(token, storyData);
@@ -230,7 +196,6 @@ class SyncManager {
             }
 
             if (response.error === false) {
-                // Berhasil - hapus dari pending
                 await deletePendingStory(story.id);
                 console.log(`✅ Story ${story.id} synced successfully`);
             } else {
@@ -240,7 +205,6 @@ class SyncManager {
         } catch (error) {
             console.error(`❌ Failed to sync story ${story.id}:`, error);
             
-            // Update status ke failed
             await updatePendingStoryStatus(
                 story.id, 
                 'failed', 
@@ -251,19 +215,11 @@ class SyncManager {
         }
     }
 
-    /**
-     * Cek apakah ada pending stories
-     * @returns {Promise<boolean>}
-     */
     async hasPendingStories() {
         const count = await getPendingStoriesCount();
         return count > 0;
     }
 
-    /**
-     * Get status sync
-     * @returns {Object}
-     */
     getStatus() {
         return {
             isSyncing: this.#isSyncing,
@@ -272,6 +228,5 @@ class SyncManager {
     }
 }
 
-// Export singleton instance
 const syncManager = new SyncManager();
 export default syncManager;

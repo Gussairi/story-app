@@ -1219,14 +1219,6 @@ select:focus-visible {
     outline-offset: -2px;
 }
 
-.notification-icon {
-    font-size: 1.25rem;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-
 .notification-text {
     flex: 1;
 }
@@ -1719,6 +1711,8 @@ select:focus-visible {
         gap: 16px;
     }
 }
+
+
 html {
     scroll-behavior: smooth;
 }
@@ -2875,14 +2869,6 @@ html {
         background-color: rgba(255, 255, 255, 0.2);
         color: #ffffff;
     }
-
-    .notification-text {
-        display: none;
-    }
-
-    .notification-icon {
-        font-size: 1.5rem;
-    }
 }
 
 html {
@@ -3065,7 +3051,6 @@ html {
     }
 }
 
-/* Sync Status Container */
 .sync-status-container {
     position: fixed;
     bottom: -100px;
@@ -3216,7 +3201,6 @@ html {
     border-radius: 2px;
 }
 
-/* Offline Indicator (existing but enhanced) */
 .offline-indicator {
     position: fixed;
     top: 70px;

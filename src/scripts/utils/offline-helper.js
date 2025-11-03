@@ -1,11 +1,8 @@
-// Offline Helper - untuk mendeteksi status offline/online
-
 export function isOnline() {
     return navigator.onLine;
 }
 
 export function setupOfflineIndicator() {
-    // Create offline indicator element
     const offlineIndicator = document.createElement('div');
     offlineIndicator.id = 'offline-indicator';
     offlineIndicator.className = 'offline-indicator hidden';
@@ -17,7 +14,6 @@ export function setupOfflineIndicator() {
     `;
     document.body.appendChild(offlineIndicator);
 
-    // Online indicator
     const onlineIndicator = document.createElement('div');
     onlineIndicator.id = 'online-indicator';
     onlineIndicator.className = 'online-indicator hidden';
@@ -29,11 +25,9 @@ export function setupOfflineIndicator() {
     `;
     document.body.appendChild(onlineIndicator);
 
-    // Event listeners
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
-    // Check initial status
     if (!navigator.onLine) {
         showOfflineIndicator();
     }
@@ -49,7 +43,6 @@ function handleOnline() {
     hideOfflineIndicator();
     showOnlineIndicator();
     
-    // Hide online indicator after 3 seconds
     setTimeout(() => {
         hideOnlineIndicator();
     }, 3000);
@@ -87,7 +80,6 @@ function hideOnlineIndicator() {
     }
 }
 
-// Check if content is cached
 export async function isContentCached(url) {
     if ('caches' in window) {
         const cacheNames = await caches.keys();
@@ -102,7 +94,6 @@ export async function isContentCached(url) {
     return false;
 }
 
-// Get cached stories count
 export async function getCachedStoriesCount() {
     if ('caches' in window) {
         const cache = await caches.open('story-app-api-v1');

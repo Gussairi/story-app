@@ -1,13 +1,7 @@
-// src/scripts/utils/indexeddb-helper.js
-
 const DB_NAME = 'story-app-db';
 const DB_VERSION = 1;
 const STORE_NAME = 'preferences';
 
-/**
- * Inisialisasi dan buka koneksi ke IndexedDB
- * @returns {Promise<IDBDatabase>}
- */
 function openDB() {
     return new Promise((resolve, reject) => {
         const request = indexedDB.open(DB_NAME, DB_VERSION);
@@ -24,7 +18,6 @@ function openDB() {
         request.onupgradeneeded = (event) => {
             const db = event.target.result;
 
-            // Buat object store jika belum ada
             if (!db.objectStoreNames.contains(STORE_NAME)) {
                 const objectStore = db.createObjectStore(STORE_NAME, { keyPath: 'key' });
                 objectStore.createIndex('key', 'key', { unique: true });
@@ -34,12 +27,6 @@ function openDB() {
     });
 }
 
-/**
- * Simpan data ke IndexedDB
- * @param {string} key - Key untuk data
- * @param {any} value - Value yang akan disimpan
- * @returns {Promise<void>}
- */
 export async function saveToIndexedDB(key, value) {
     try {
         const db = await openDB();
@@ -75,11 +62,6 @@ export async function saveToIndexedDB(key, value) {
     }
 }
 
-/**
- * Ambil data dari IndexedDB
- * @param {string} key - Key untuk data yang ingin diambil
- * @returns {Promise<any>}
- */
 export async function getFromIndexedDB(key) {
     try {
         const db = await openDB();
@@ -109,11 +91,6 @@ export async function getFromIndexedDB(key) {
     }
 }
 
-/**
- * Hapus data dari IndexedDB
- * @param {string} key - Key untuk data yang ingin dihapus
- * @returns {Promise<void>}
- */
 export async function deleteFromIndexedDB(key) {
     try {
         const db = await openDB();
@@ -142,10 +119,6 @@ export async function deleteFromIndexedDB(key) {
     }
 }
 
-/**
- * Ambil semua data dari IndexedDB
- * @returns {Promise<Array>}
- */
 export async function getAllFromIndexedDB() {
     try {
         const db = await openDB();
@@ -174,10 +147,6 @@ export async function getAllFromIndexedDB() {
     }
 }
 
-/**
- * Hapus semua data dari IndexedDB
- * @returns {Promise<void>}
- */
 export async function clearIndexedDB() {
     try {
         const db = await openDB();
@@ -206,10 +175,6 @@ export async function clearIndexedDB() {
     }
 }
 
-/**
- * Cek apakah IndexedDB tersedia
- * @returns {boolean}
- */
 export function isIndexedDBAvailable() {
     return 'indexedDB' in window;
 }

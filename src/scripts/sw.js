@@ -1,4 +1,3 @@
-// Import workbox
 import { precacheAndRoute } from 'workbox-precaching';
 
 precacheAndRoute(self.__WB_MANIFEST || []);
@@ -6,7 +5,7 @@ precacheAndRoute(self.__WB_MANIFEST || []);
 const CACHE_NAME = 'story-app-runtime-v1';
 const API_CACHE_NAME = 'story-app-api-v1';
 
-self.addEventListener('install', (event) => {
+self.addEventListener('install', () => {
     console.log('Service Worker: Installing...');
     self.skipWaiting();
 });
@@ -32,7 +31,6 @@ self.addEventListener('activate', (event) => {
     return self.clients.claim();
 });
 
-// Message event untuk menerima perintah dari main thread
 self.addEventListener('message', (event) => {
     console.log('Service Worker: Message received', event.data);
     
@@ -53,7 +51,6 @@ self.addEventListener('message', (event) => {
             timestamp: Date.now()
         };
         
-        // Add actions with open and close buttons
         options.actions = [
             {
                 action: 'open',
@@ -78,29 +75,22 @@ self.addEventListener('fetch', (event) => {
     const { request } = event;
     const url = new URL(request.url);
     
-    // Hanya cache GET request dari API
     if (url.origin === 'https://story-api.dicoding.dev') {
-        // Skip caching untuk request POST, PUT, DELETE
         if (request.method !== 'GET') {
             return;
         }
 
-        // Skip caching untuk image/photo URLs
-        // Cek apakah URL mengandung path ke foto
         if (url.pathname.includes('/photos/') || 
             url.pathname.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i) ||
             request.headers.get('accept')?.includes('image/')) {
             console.log('Skipping cache for image:', url.pathname);
-            // Langsung fetch tanpa cache
             event.respondWith(fetch(request));
             return;
         }
         
-        // Cache hanya untuk data JSON (stories list, detail, dll)
         event.respondWith(
             fetch(request)
                 .then((response) => {
-                    // Cek apakah response adalah JSON
                     const contentType = response.headers.get('content-type');
                     if (contentType && contentType.includes('application/json')) {
                         const responseClone = response.clone();
@@ -112,16 +102,13 @@ self.addEventListener('fetch', (event) => {
                     return response;
                 })
                 .catch(() => {
-                    // Fallback ke cache jika offline
                     return caches.match(request);
                 })
         );
         return;
     }
 
-    // Cache untuk assets statis (JS, CSS, fonts)
     if (url.origin === self.location.origin) {
-        // Jangan cache HTML files (selalu fetch latest)
         if (url.pathname.endsWith('.html') || url.pathname === '/') {
             event.respondWith(
                 fetch(request).catch(() => caches.match(request))
@@ -129,7 +116,6 @@ self.addEventListener('fetch', (event) => {
             return;
         }
 
-        // Cache untuk JS, CSS, fonts
         if (url.pathname.match(/\.(js|css|woff2|woff|ttf|eot)$/)) {
             event.respondWith(
                 caches.match(request).then((response) => {
@@ -146,11 +132,9 @@ self.addEventListener('fetch', (event) => {
     }
 });
 
-// Push event - dengan data dinamis
 self.addEventListener('push', (event) => {
     console.log('Service Worker: Push event received', event);
     
-    // Default notification data
     let notificationData = {
         title: 'Story App',
         body: 'Anda mendapat notifikasi baru!',
@@ -161,7 +145,6 @@ self.addEventListener('push', (event) => {
         }
     };
     
-    // Parse data dari push event
     if (event.data) {
         try {
             const pushData = event.data.json();
@@ -205,7 +188,6 @@ self.addEventListener('push', (event) => {
     );
 });
 
-// Notification click event dengan navigasi dinamis
 self.addEventListener('notificationclick', (event) => {
     console.log('Notification clicked:', event);
     console.log('Action:', event.action);
@@ -213,35 +195,29 @@ self.addEventListener('notificationclick', (event) => {
     
     event.notification.close();
     
-    // Handle close action - just close notification
     if (event.action === 'close') {
         console.log('Close action clicked - notification closed');
         return;
     }
     
-    // Tentukan URL tujuan (relative path)
     let targetPath = '/';
     
     if (event.notification.data) {
         const data = event.notification.data;
         
-        // Jika ada storyId, navigasi ke detail story
         if (data.storyId) {
             targetPath = `/#/story/${data.storyId}`;
             console.log('Navigating to story detail:', targetPath);
         } 
-        // Jika ada URL custom
         else if (data.url) {
             targetPath = data.url;
             console.log('Navigating to custom URL:', targetPath);
         }
     }
     
-    // Handle open action atau click pada notifikasi body
     if (event.action === 'open' || !event.action) {
         console.log('Opening path:', targetPath);
         
-        // Buka atau focus window
         event.waitUntil(
             clients.matchAll({ 
                 type: 'window', 
@@ -250,16 +226,13 @@ self.addEventListener('notificationclick', (event) => {
             .then((clientList) => {
                 console.log('Found clients:', clientList.length);
                 
-                // Construct full URL
                 const fullUrl = new URL(targetPath, self.location.origin).href;
                 console.log('Full URL:', fullUrl);
                 
-                // Coba focus window yang sudah terbuka
                 for (let i = 0; i < clientList.length; i++) {
                     const client = clientList[i];
                     console.log('Checking client:', client.url);
                     
-                    // Focus window yang sudah terbuka dan navigate ke target URL
                     if ('focus' in client && 'navigate' in client) {
                         console.log('Focusing existing window');
                         return client.focus().then(() => {
@@ -269,7 +242,6 @@ self.addEventListener('notificationclick', (event) => {
                     }
                 }
                 
-                // Jika tidak ada window yang terbuka, buka window baru
                 console.log('Opening new window with URL:', fullUrl);
                 return clients.openWindow(fullUrl);
             })
@@ -280,7 +252,6 @@ self.addEventListener('notificationclick', (event) => {
     }
 });
 
-// Background Sync API untuk sync otomatis saat online kembali
 self.addEventListener('sync', (event) => {
     console.log('Background Sync event triggered:', event.tag);
     
@@ -289,14 +260,10 @@ self.addEventListener('sync', (event) => {
     }
 });
 
-/**
- * Background sync untuk pending stories
- */
 async function syncPendingStories() {
     console.log('🔄 Background sync: Syncing pending stories...');
     
     try {
-        // Kirim message ke clients untuk trigger sync
         const clients = await self.clients.matchAll({ 
             type: 'window',
             includeUncontrolled: true 
@@ -316,7 +283,6 @@ async function syncPendingStories() {
     }
 }
 
-// Optional: Periodic Background Sync (jika browser support)
 self.addEventListener('periodicsync', (event) => {
     console.log('Periodic Sync event triggered:', event.tag);
     

@@ -1,4 +1,3 @@
-// src/scripts/index.js
 import '../styles/styles.css';
 import '../styles/transitions.css';
 
@@ -18,13 +17,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     await app.renderPage();
     await registerServiceWorker();
     
-    // Request notification permission setelah service worker ready
     await requestNotificationPermission();
 
-    // Initialize sync status component
     await syncStatusComponent.init();
 
-    // Auto cleanup cache jika terlalu besar (async, tidak blocking)
     autoCleanupCache().then(result => {
         if (result.cleaned) {
             console.log('✅ Cache auto-cleanup completed:', result);
@@ -33,14 +29,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.error('Error during cache auto-cleanup:', error);
     });
 
-    // Cek dan sync pending stories saat app load (jika online)
     if (navigator.onLine) {
         const hasPending = await syncManager.hasPendingStories();
         if (hasPending) {
-            console.log('🔄 Found pending stories, starting auto-sync...');
-            // Delay 2 detik agar user sempat lihat UI dulu
+            console.log('🔄 Found pending stories, starting auto-sync...')
             setTimeout(() => {
-                syncManager.syncPendingStories(true); // silent mode
+                syncManager.syncPendingStories(true);
             }, 2000);
         }
     }

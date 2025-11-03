@@ -40,7 +40,6 @@ export async function registerServiceWorker() {
     try {
         console.log('🔄 Memulai proses registrasi Service Worker...');
         
-        // Cek apakah sudah ada service worker terdaftar
         const existingRegistrations = await navigator.serviceWorker.getRegistrations();
         console.log(`📋 Jumlah Service Worker terdaftar: ${existingRegistrations.length}`);
         
@@ -55,23 +54,20 @@ export async function registerServiceWorker() {
             });
         }
 
-        // Registrasi service worker
         let registration = await navigator.serviceWorker.getRegistration();
         
         if (!registration) {
             console.log('📝 Mendaftarkan Service Worker baru...');
             registration = await navigator.serviceWorker.register('/sw.js', {
                 scope: '/',
-                updateViaCache: 'none' // Pastikan selalu mengambil versi terbaru
+                updateViaCache: 'none'
             });
             console.log('✅ Service Worker berhasil didaftarkan');
         } else {
             console.log('✅ Service Worker sudah terdaftar');
-            // Force update untuk memastikan mendapatkan versi terbaru
             await registration.update();
         }
 
-        // Monitor status instalasi
         if (registration.installing) {
             console.log('⏳ Service Worker sedang installing...');
             await trackInstallation(registration.installing);
@@ -81,7 +77,6 @@ export async function registerServiceWorker() {
             console.log('✅ Service Worker aktif dan berjalan');
         }
 
-        // Tunggu service worker benar-benar siap
         const readyRegistration = await navigator.serviceWorker.ready;
         console.log('🎉 Service Worker ready:', {
             scope: readyRegistration.scope,
@@ -89,7 +84,6 @@ export async function registerServiceWorker() {
             updateFound: false
         });
 
-        // Monitor update
         registration.addEventListener('updatefound', () => {
             const newWorker = registration.installing;
             console.log('🆕 Update Service Worker ditemukan');
@@ -97,7 +91,6 @@ export async function registerServiceWorker() {
             trackInstallation(newWorker);
         });
 
-        // Cek update secara periodik (setiap 30 detik)
         setInterval(() => {
             registration.update().catch(err => {
                 console.log('Error saat cek update SW:', err.message);
@@ -113,7 +106,6 @@ export async function registerServiceWorker() {
             stack: error.stack
         });
         
-        // Retry setelah 5 detik jika gagal
         console.log('🔄 Akan mencoba lagi dalam 5 detik...');
         setTimeout(() => {
             console.log('🔄 Mencoba registrasi ulang...');
@@ -140,7 +132,6 @@ export async function subscribeToPushNotification() {
             return { success: true, subscription, isNew: false };
         }
 
-        // Subscribe baru
         const convertedVapidKey = urlBase64ToUint8Array(CONFIG.VAPID_PUBLIC_KEY);
         subscription = await registration.pushManager.subscribe({
             userVisibleOnly: true,
@@ -148,15 +139,12 @@ export async function subscribeToPushNotification() {
         });
         console.log('Subscribed to push:', subscription);
 
-        // Simpan subscription ke localStorage
         localStorage.setItem('pushSubscription', JSON.stringify(subscription));
 
-        // Kirim subscription ke backend
         const token = localStorage.getItem('token');
         if (!token) {
             throw new Error('Token tidak ditemukan. Silakan login ulang.');
         }
-        // Format subscription agar sesuai dengan API
         const subObj = subscription.toJSON();
         const payload = {
             endpoint: subObj.endpoint,
@@ -183,7 +171,6 @@ export async function unsubscribeFromPushNotification() {
             return { success: true, message: 'Tidak ada subscription aktif' };
         }
 
-        // Hapus dari backend
         const token = localStorage.getItem('token');
         if (!token) {
             throw new Error('Token tidak ditemukan. Silakan login ulang.');
@@ -241,7 +228,6 @@ function urlBase64ToUint8Array(base64String) {
     return outputArray;
 }
 
-// Fungsi untuk testing push notification
 export async function sendTestNotification(data = {}) {
     try {
         const registration = await navigator.serviceWorker.ready;
@@ -294,9 +280,6 @@ export async function registerBackgroundSync() {
     }
 }
 
-/**
- * Listen untuk background sync messages dari service worker
- */
 export function setupBackgroundSyncListener(callback) {
     if (!('serviceWorker' in navigator)) {
         return;

@@ -1,13 +1,7 @@
-// src/scripts/utils/offline-sync-helper.js
-
 const DB_NAME = 'story-app-sync-db';
 const DB_VERSION = 1;
 const PENDING_STORIES_STORE = 'pending-stories';
 
-/**
- * Inisialisasi dan buka koneksi ke IndexedDB untuk sync
- * @returns {Promise<IDBDatabase>}
- */
 function openSyncDB() {
     return new Promise((resolve, reject) => {
         const request = indexedDB.open(DB_NAME, DB_VERSION);
@@ -24,7 +18,6 @@ function openSyncDB() {
         request.onupgradeneeded = (event) => {
             const db = event.target.result;
 
-            // Buat object store untuk pending stories
             if (!db.objectStoreNames.contains(PENDING_STORIES_STORE)) {
                 const objectStore = db.createObjectStore(PENDING_STORIES_STORE, { 
                     keyPath: 'id',
@@ -38,11 +31,6 @@ function openSyncDB() {
     });
 }
 
-/**
- * Simpan story ke IndexedDB untuk di-sync nanti
- * @param {Object} storyData - Data story yang akan disimpan
- * @returns {Promise<number>} - ID dari story yang disimpan
- */
 export async function savePendingStory(storyData) {
     try {
         const db = await openSyncDB();
@@ -51,14 +39,14 @@ export async function savePendingStory(storyData) {
 
         const pendingStory = {
             description: storyData.description,
-            photoBlob: storyData.photo, // File object
+            photoBlob: storyData.photo,
             photoName: storyData.photo.name,
             photoType: storyData.photo.type,
             photoSize: storyData.photo.size,
             lat: storyData.lat || null,
             lon: storyData.lon || null,
             timestamp: Date.now(),
-            status: 'pending', // pending, syncing, failed
+            status: 'pending',
             retryCount: 0,
             error: null
         };
@@ -87,10 +75,6 @@ export async function savePendingStory(storyData) {
     }
 }
 
-/**
- * Ambil semua pending stories
- * @returns {Promise<Array>}
- */
 export async function getPendingStories() {
     try {
         const db = await openSyncDB();
@@ -120,13 +104,6 @@ export async function getPendingStories() {
     }
 }
 
-/**
- * Update status pending story
- * @param {number} id - ID story
- * @param {string} status - Status baru (pending, syncing, failed)
- * @param {string} error - Error message jika ada
- * @returns {Promise<void>}
- */
 export async function updatePendingStoryStatus(id, status, error = null) {
     try {
         const db = await openSyncDB();
@@ -175,11 +152,6 @@ export async function updatePendingStoryStatus(id, status, error = null) {
     }
 }
 
-/**
- * Hapus pending story setelah berhasil sync
- * @param {number} id - ID story yang akan dihapus
- * @returns {Promise<void>}
- */
 export async function deletePendingStory(id) {
     try {
         const db = await openSyncDB();
@@ -208,10 +180,6 @@ export async function deletePendingStory(id) {
     }
 }
 
-/**
- * Hitung jumlah pending stories
- * @returns {Promise<number>}
- */
 export async function getPendingStoriesCount() {
     try {
         const db = await openSyncDB();
@@ -238,10 +206,6 @@ export async function getPendingStoriesCount() {
     }
 }
 
-/**
- * Clear semua pending stories (untuk testing/reset)
- * @returns {Promise<void>}
- */
 export async function clearPendingStories() {
     try {
         const db = await openSyncDB();

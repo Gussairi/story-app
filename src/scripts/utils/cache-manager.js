@@ -1,9 +1,3 @@
-// src/scripts/utils/cache-manager.js
-
-/**
- * Get cache storage usage info
- * @returns {Promise<Object>}
- */
 export async function getCacheInfo() {
     if (!('caches' in window)) {
         return {
@@ -67,11 +61,6 @@ export async function getCacheInfo() {
     }
 }
 
-/**
- * Clear specific cache
- * @param {string} cacheName - Name of cache to clear
- * @returns {Promise<boolean>}
- */
 export async function clearCache(cacheName) {
     if (!('caches' in window)) {
         return false;
@@ -87,10 +76,6 @@ export async function clearCache(cacheName) {
     }
 }
 
-/**
- * Clear all caches
- * @returns {Promise<number>} - Number of caches cleared
- */
 export async function clearAllCaches() {
     if (!('caches' in window)) {
         return 0;
@@ -115,12 +100,6 @@ export async function clearAllCaches() {
     }
 }
 
-/**
- * Clear old cache entries (older than specified days)
- * @param {string} cacheName - Cache name
- * @param {number} days - Days threshold
- * @returns {Promise<number>} - Number of entries cleared
- */
 export async function clearOldCacheEntries(cacheName, days = 7) {
     if (!('caches' in window)) {
         return 0;
@@ -159,10 +138,6 @@ export async function clearOldCacheEntries(cacheName, days = 7) {
     }
 }
 
-/**
- * Get storage quota info
- * @returns {Promise<Object>}
- */
 export async function getStorageQuota() {
     if (!('storage' in navigator) || !('estimate' in navigator.storage)) {
         return {
@@ -202,21 +177,12 @@ export async function getStorageQuota() {
     }
 }
 
-/**
- * Check if cache size is too large
- * @param {number} maxSizeMB - Maximum size in MB
- * @returns {Promise<boolean>}
- */
 export async function isCacheTooLarge(maxSizeMB = 50) {
     const info = await getCacheInfo();
     const maxSizeBytes = maxSizeMB * 1024 * 1024;
     return info.totalSize > maxSizeBytes;
 }
 
-/**
- * Remove images from cache (cleanup)
- * @returns {Promise<number>} - Number of images removed
- */
 export async function removeImagesFromCache() {
     if (!('caches' in window)) {
         return 0;
@@ -233,7 +199,6 @@ export async function removeImagesFromCache() {
             for (const request of keys) {
                 const url = request.url;
                 
-                // Cek apakah URL adalah gambar dari story-api
                 if (url.includes('story-api.dicoding.dev') && 
                     (url.includes('/images/') || 
                     url.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i))) {
@@ -242,7 +207,6 @@ export async function removeImagesFromCache() {
                     console.log(`Removed image from cache: ${url}`);
                 }
                 
-                // Cek juga apakah response adalah image (check content-type)
                 try {
                     const response = await cache.match(request);
                     if (response) {
@@ -254,7 +218,6 @@ export async function removeImagesFromCache() {
                         }
                     }
                 } catch (error) {
-                    // Skip jika error saat check response
                 }
             }
         }
@@ -267,12 +230,6 @@ export async function removeImagesFromCache() {
     }
 }
 
-/**
- * Format bytes to human readable
- * @param {number} bytes 
- * @param {number} decimals 
- * @returns {string}
- */
 function formatBytes(bytes, decimals = 2) {
     if (bytes === 0) return '0 Bytes';
 
@@ -285,15 +242,11 @@ function formatBytes(bytes, decimals = 2) {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
 }
 
-/**
- * Auto cleanup cache jika terlalu besar
- * @returns {Promise<Object>}
- */
 export async function autoCleanupCache() {
     console.log('Running auto cache cleanup...');
     
     const info = await getCacheInfo();
-    const maxSizeMB = 50; // Max 50MB
+    const maxSizeMB = 50;
     const maxSizeBytes = maxSizeMB * 1024 * 1024;
 
     if (info.totalSize <= maxSizeBytes) {
@@ -307,17 +260,14 @@ export async function autoCleanupCache() {
 
     console.log(`Cache too large: ${info.totalSizeFormatted}, cleaning up...`);
 
-    // 1. Remove images first
     const imagesRemoved = await removeImagesFromCache();
 
-    // 2. Clear old entries
     let oldEntriesRemoved = 0;
     for (const cacheInfo of info.caches) {
         const removed = await clearOldCacheEntries(cacheInfo.name, 7);
         oldEntriesRemoved += removed;
     }
 
-    // 3. Check size again
     const newInfo = await getCacheInfo();
 
     return {

@@ -1,4 +1,3 @@
-// src/scripts/pages/home/home-page.js
 import API from '../../data/api';
 import { showFormattedDate } from '../../utils/helper';
 import { closeLoading, showError, showLoading } from '../../utils/swal-helper';
@@ -9,7 +8,7 @@ export default class HomePage {
     #pageSize = 10;
     #totalPages = 1;
     #maxPageReached = 1;
-    #sortOrder = 'newest'; // default: newest
+    #sortOrder = 'newest';
 
     async render() {
         const token = localStorage.getItem('token');
@@ -89,13 +88,11 @@ export default class HomePage {
 
         if (!token) return;
 
-        // Load preferensi sorting dari IndexedDB
         await this.#loadSortPreference();
 
         const pageSizeSelect = document.getElementById('pageSizeSelect');
         const sortSelect = document.getElementById('sortSelect');
 
-        // Set nilai sort select sesuai preferensi
         if (sortSelect) {
             sortSelect.value = this.#sortOrder;
         }
@@ -114,7 +111,6 @@ export default class HomePage {
             sortSelect.addEventListener('change', async (e) => {
                 this.#sortOrder = e.target.value;
                 
-                // Simpan preferensi ke IndexedDB
                 await saveToIndexedDB('sortOrder', this.#sortOrder);
                 
                 this.#currentPage = 1;
@@ -137,7 +133,6 @@ export default class HomePage {
             }
         } catch (error) {
             console.error('Error loading sort preference:', error);
-            // Gunakan default jika error
             this.#sortOrder = 'newest';
         }
     }
@@ -160,7 +155,6 @@ export default class HomePage {
             if (response.error === false && response.listStory) {
                 let stories = response.listStory;
                 
-                // Sorting berdasarkan tanggal
                 stories = this.#sortStories(stories);
 
                 const storyCount = stories.length;
@@ -244,10 +238,8 @@ export default class HomePage {
             const dateB = new Date(b.createdAt);
             
             if (this.#sortOrder === 'newest') {
-                // Terbaru di atas (descending)
                 return dateB - dateA;
             } else {
-                // Terlama di atas (ascending)
                 return dateA - dateB;
             }
         });

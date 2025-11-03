@@ -92,10 +92,8 @@ class App {
     if (!navList) return;
 
     if (token) {
-      // Cek status subscription
       const subscriptionStatus = await checkSubscriptionStatus();
       const isSubscribed = subscriptionStatus.subscribed;
-      const notificationIcon = isSubscribed ? '🔔' : '🔕';
       const notificationText = isSubscribed ? 'Matikan Notifikasi' : 'Aktifkan Notifikasi';
 
       navList.innerHTML = `
@@ -109,7 +107,6 @@ class App {
             title="${notificationText}"
             aria-label="${notificationText}"
           >
-            <span class="notification-icon">${notificationIcon}</span>
             <span class="notification-text">${notificationText}</span>
           </button>
         </li>
@@ -153,7 +150,6 @@ class App {
     }
 
     if (subscriptionStatus.subscribed) {
-      // Unsubscribe
       const confirmed = await showConfirm(
         'Matikan Notifikasi?',
         'Anda tidak akan menerima notifikasi push lagi.',
@@ -179,7 +175,6 @@ class App {
         }
       }
     } else {
-      // Subscribe
       const confirmed = await showConfirm(
         'Aktifkan Notifikasi?',
         'Anda akan menerima notifikasi tentang cerita baru dan update.',
@@ -206,7 +201,6 @@ class App {
       }
     }
 
-    // Tutup drawer setelah aksi
     this.#navigationDrawer.classList.remove('open');
     this.#drawerButton.setAttribute('aria-expanded', 'false');
   }
